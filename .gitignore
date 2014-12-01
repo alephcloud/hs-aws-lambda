@@ -1,0 +1,22 @@
+### source dependencies
+vendor/
+
+.SyncID
+.SyncIgnore
+*.o
+*.hi
+*.dyn_o
+*.dyn_hi
+*.hs~
+dist
+.cabal-sandbox
+cabal.sandbox.config
+
+### Emacs ###
+# -*- mode: gitignore; -*-
+*~
+\#*\#
+.\#*
+
+### OS X ###
+.DS_Store
