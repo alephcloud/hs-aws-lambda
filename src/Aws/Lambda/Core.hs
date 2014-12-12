@@ -21,6 +21,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
 module Aws.Lambda.Core
@@ -39,6 +40,7 @@ module Aws.Lambda.Core
 , lambdaServiceEndpoint
   -- ** Queries
 , LambdaQuery(..)
+, lambdaSignQuery
   -- *** Lenses
 , lqAction
 , lqBody
@@ -48,13 +50,25 @@ import Aws.Core
 import Aws.General
 
 import Control.Applicative
+import qualified Crypto.Hash as CH
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as B8
+import qualified Data.ByteString.Base16 as B16
+import qualified Data.ByteString.Lazy as LB
+import qualified Data.CaseInsensitive as CI
+import qualified Data.Byteable as DB
+import Data.Function (on)
+import qualified Data.List as L
 import Data.Maybe
 import Data.Monoid
+import Data.Monoid.Unicode
 import Data.String
 import qualified Data.Text as T
 import Data.Typeable
+
+import qualified Network.HTTP.Types as HTTP
+import qualified Network.HTTP.Conduit as HTTP
+import Prelude.Unicode
 
 import qualified Text.Parser.Char as P
 import qualified Text.Parser.Combinators as P
@@ -185,7 +199,7 @@ lambdaServiceEndpoint = \case
 data LambdaQuery
   = LambdaQuery
   { _lqAction ∷ !LambdaAction
-  , _lqBody ∷ !(Maybe B.ByteString)
+  , _lqBody ∷ !LB.ByteString
   } deriving (Eq, Show)
 
 -- | A lens for '_lqAction'.
@@ -206,14 +220,104 @@ lqAction i LambdaQuery{..} =
 -- | A lens for '_lqBody'.
 --
 -- @
--- 'lqBody' ∷ Lens' 'LambdaQuery' ('Maybe' 'B.ByteString')
+-- 'lqBody' ∷ Lens' 'LambdaQuery' 'LB.ByteString'
 -- @
 --
 lqBody
   ∷ Functor f
-  ⇒ (Maybe B.ByteString → f (Maybe B.ByteString))
+  ⇒ (LB.ByteString → f LB.ByteString)
   → LambdaQuery
   → f LambdaQuery
 lqBody i LambdaQuery{..} =
   (\_lqBody → LambdaQuery{..})
     <$> i _lqBody
+
+lambdaTargetVersion ∷ IsString a ⇒ a
+lambdaTargetVersion = "Lambda_20120810"
+
+lambdaTargetHeader
+  ∷ LambdaAction
+  → HTTP.Header
+lambdaTargetHeader a =
+  ( "X-Amz-Target"
+  , lambdaTargetVersion ⊕ "." ⊕ toText a
+  )
+
+
+-- | Creates a signed query.
+--
+-- Uses AWS Signature V4. All requests are POST requests
+-- with the signature placed in an HTTP header
+--
+lambdaSignQuery
+  ∷ LambdaQuery
+  → LambdaConfiguration qt
+  → SignatureData
+  → SignedQuery
+lambdaSignQuery LambdaQuery{..} LambdaConfiguration{..} sigData = SignedQuery
+  { sqMethod = Post
+  , sqProtocol = HTTP
+  , sqHost = host
+  , sqPort = 80
+  , sqPath = "/"
+  , sqQuery = []
+  , sqDate = Just $ signatureTime sigData
+  , sqAuthorization = Just auth
+  , sqContentType = Just "application/x-amz-json-1.0"
+  , sqContentMd5 = Nothing
+  , sqAmzHeaders = amzHeaders ⊕ maybe [] pure securityTokenHeader
+  , sqOtherHeaders = []
+  , sqBody = Just $ HTTP.RequestBodyLBS _lqBody
+  , sqStringToSign = canonicalRequest
+  }
+    where
+      credentials = signatureCredentials sigData
+      host = lambdaServiceEndpoint _lcRegion
+      sigTime = fmtTime "%Y%m%dT%H%M%SZ" $ signatureTime sigData
+
+      -- for some reason AWS doesn't want the x-amz-security-token in the canonical request
+      amzHeaders =
+        [ ("x-amz-date", sigTime)
+        , lambdaTargetHeader _lqAction
+        ]
+
+      securityTokenHeader =
+        ("x-amz-security-token",)
+          <$> iamToken credentials
+
+      canonicalHeaders =
+        L.sortBy (compare `on` fst) $
+          amzHeaders ⊕
+            [ ("host", host)
+            , ("content-type", "application/x-amz-json-1.0")
+            ]
+
+      canonicalRequest =
+        let bodyHash = B16.encode $ DB.toBytes (CH.hashlazy _lqBody :: CH.Digest CH.SHA256)
+            headers =
+              flip fmap canonicalHeaders $ \(a,b) →
+                [ CI.foldedCase a
+                , ":"
+                , b
+                ]
+        in
+          B.concat ∘ L.intercalate ["\n"] $
+            [ [ "POST" ]
+            , [ "/" ]
+            , [] -- query string
+            ] ⊕ headers ⊕
+              [ [] -- end headers
+              , L.intersperse ";" ((CI.foldedCase ∘ fst) <$> canonicalHeaders)
+              , [ bodyHash ]
+              ]
+
+      auth =
+        authorizationV4
+          sigData
+          HmacSHA256
+          (regionToText _lcRegion)
+          "lambda"
+          "content-type;host;x-amz-date;x-amz-target"
+          canonicalRequest
+
+
