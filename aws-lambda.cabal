@@ -20,7 +20,8 @@ library
                        aws >= 0.10.5,
                        aws-general >= 0.1,
                        bytestring >= 0.10.4.0,
-                       parsers >= 0.11
+                       parsers >= 0.11,
+                       text >=1.2.0.0
   hs-source-dirs:      src
   ghc-options:         -Wall
   default-language:    Haskell2010

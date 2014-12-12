@@ -24,10 +24,15 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
 module Aws.Lambda.Core
-( -- * Configuration
+( -- * Client configuration
   LambdaConfiguration(..)
   -- ** Lenses
 , lcRegion
+
+  -- * Client metadata
+, LambdaMetadata(..)
+  -- ** Lenses
+, lmdRequestId
 
   -- * Internal
 , LambdaAction(..)
@@ -39,6 +44,7 @@ import Aws.General
 import Control.Applicative
 import qualified Data.ByteString.Char8 as B8
 import Data.String
+import qualified Data.Text as T
 import Data.Typeable
 
 import qualified Text.Parser.Char as P
@@ -63,6 +69,26 @@ lcRegion
   → f (LambdaConfiguration qt)
 lcRegion i LambdaConfiguration{..} =
   LambdaConfiguration <$> i _lcRegion
+
+
+data LambdaMetadata
+  = LambdaMetadata
+  { _lmdRequestId ∷ !(Maybe T.Text)
+  }
+
+-- | A lens for '_lmdRequestId'.
+--
+-- @
+-- lmdRequestId ∷ Lens' 'LambdaMetadata' ('Maybe' 'T.Text')
+-- @
+--
+lmdRequestId
+  ∷ Functor f
+  ⇒ (Maybe T.Text → f (Maybe T.Text))
+  → LambdaMetadata
+  → f LambdaMetadata
+lmdRequestId i LambdaMetadata{..} =
+  LambdaMetadata <$> i _lmdRequestId
 
 data LambdaAction
   = LambdaAddEventSource
