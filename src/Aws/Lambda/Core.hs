@@ -54,7 +54,7 @@ import Text.Parser.Combinators ((<?>))
 data LambdaConfiguration qt
   = LambdaConfiguration
   { _lcRegion ∷ !Region
-  } deriving Show
+  } deriving (Eq, Show)
 
 -- | A lens for '_lcRegion'.
 --
@@ -74,7 +74,7 @@ lcRegion i LambdaConfiguration{..} =
 data LambdaMetadata
   = LambdaMetadata
   { _lmdRequestId ∷ !(Maybe T.Text)
-  }
+  } deriving (Eq, Show)
 
 -- | A lens for '_lmdRequestId'.
 --
