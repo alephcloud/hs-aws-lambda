@@ -39,10 +39,13 @@ module Aws.Lambda.Core
 , lambdaServiceEndpoint
 ) where
 
+import Aws.Core
 import Aws.General
 
 import Control.Applicative
 import qualified Data.ByteString.Char8 as B8
+import Data.Maybe
+import Data.Monoid
 import Data.String
 import qualified Data.Text as T
 import Data.Typeable
@@ -75,6 +78,15 @@ data LambdaMetadata
   = LambdaMetadata
   { _lmdRequestId ∷ !(Maybe T.Text)
   } deriving (Eq, Show)
+
+instance Monoid LambdaMetadata where
+  mempty = LambdaMetadata Nothing
+  mappend (LambdaMetadata rid) (LambdaMetadata rid') =
+    LambdaMetadata $ rid <|> rid'
+
+instance Loggable LambdaMetadata where
+  toLogText LambdaMetadata{..} =
+    "Lambda: request ID=" <> fromMaybe "<none>" _lmdRequestId
 
 -- | A lens for '_lmdRequestId'.
 --
