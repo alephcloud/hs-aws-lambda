@@ -37,12 +37,18 @@ module Aws.Lambda.Core
   -- * Internal
 , LambdaAction(..)
 , lambdaServiceEndpoint
+  -- ** Queries
+, LambdaQuery(..)
+  -- *** Lenses
+, lqAction
+, lqBody
 ) where
 
 import Aws.Core
 import Aws.General
 
 import Control.Applicative
+import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as B8
 import Data.Maybe
 import Data.Monoid
@@ -175,3 +181,39 @@ lambdaServiceEndpoint = \case
   UsWest2 → "lambda.us-west-2.amazonaws.com"
   EuWest1 → "lambda.eu-west-1.amazonaws.com"
   _ → error "Unsupported region for AWS lambda"
+
+data LambdaQuery
+  = LambdaQuery
+  { _lqAction ∷ !LambdaAction
+  , _lqBody ∷ !(Maybe B.ByteString)
+  } deriving (Eq, Show)
+
+-- | A lens for '_lqAction'.
+--
+-- @
+-- 'lqAction' ∷ Lens' 'LambdaQuery' 'LambdaAction'
+-- @
+--
+lqAction
+  ∷ Functor f
+  ⇒ (LambdaAction → f LambdaAction)
+  → LambdaQuery
+  → f LambdaQuery
+lqAction i LambdaQuery{..} =
+  (\_lqAction → LambdaQuery{..})
+    <$> i _lqAction
+
+-- | A lens for '_lqBody'.
+--
+-- @
+-- 'lqBody' ∷ Lens' 'LambdaQuery' ('Maybe' 'B.ByteString')
+-- @
+--
+lqBody
+  ∷ Functor f
+  ⇒ (Maybe B.ByteString → f (Maybe B.ByteString))
+  → LambdaQuery
+  → f LambdaQuery
+lqBody i LambdaQuery{..} =
+  (\_lqBody → LambdaQuery{..})
+    <$> i _lqBody
