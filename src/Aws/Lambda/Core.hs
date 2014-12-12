@@ -19,10 +19,20 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
-module Aws.Lambda.Core where
+module Aws.Lambda.Core
+( -- * Configuration
+  LambdaConfiguration(..)
+  -- ** Lenses
+, lcRegion
+
+  -- * Internal
+, LambdaAction(..)
+, lambdaServiceEndpoint
+) where
 
 import Aws.General
 
@@ -34,6 +44,25 @@ import Data.Typeable
 import qualified Text.Parser.Char as P
 import qualified Text.Parser.Combinators as P
 import Text.Parser.Combinators ((<?>))
+
+data LambdaConfiguration qt
+  = LambdaConfiguration
+  { _lcRegion ∷ !Region
+  } deriving Show
+
+-- | A lens for '_lcRegion'.
+--
+-- @
+-- lcRegion ∷ Lens' ('LambdaConfiguration' qt) 'Region'
+-- @
+--
+lcRegion
+  ∷ Functor f
+  ⇒ (Region → f Region)
+  → LambdaConfiguration qt
+  → f (LambdaConfiguration qt)
+lcRegion i LambdaConfiguration{..} =
+  LambdaConfiguration <$> i _lcRegion
 
 data LambdaAction
   = LambdaAddEventSource
