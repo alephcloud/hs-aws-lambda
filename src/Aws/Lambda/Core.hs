@@ -35,9 +35,32 @@ module Aws.Lambda.Core
   -- ** Lenses
 , lmdRequestId
 
+  -- * Response errors
+, LambdaErrorResponseData(..)
+, LambdaOtherErrorData(..)
+, LambdaResponseJsonErrorData(..)
+, LambdaErrorResponse(..)
+  -- ** Lenses
+, lerdErrorCode
+, lerdErrorMessage
+, loedStatus
+, loedMessage
+, lrjedMessage
+, lrjedJSON
+  -- ** Prisms
+, _LambdaResponseJsonError
+, _LambdaErrorResponse
+, _LambdaOtherError
+
+  -- * Response consumers
+, lambdaResponseConsumer
+, jsonResponseConsumer
+, errorResponseConsumer
+
   -- * Internal
 , LambdaAction(..)
 , lambdaServiceEndpoint
+
   -- ** Queries
 , LambdaQuery(..)
 , lambdaSignQuery
@@ -50,20 +73,32 @@ import Aws.Core
 import Aws.General
 
 import Control.Applicative
+import Control.Applicative.Unicode
+import Control.Exception
+import Control.Monad.Trans
+import Control.Monad.Trans.Resource (throwM)
+
 import qualified Crypto.Hash as CH
+import qualified Data.Aeson as AE
+import Data.Aeson ((.:))
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.ByteString.Base16 as B16
 import qualified Data.ByteString.Lazy as LB
-import qualified Data.CaseInsensitive as CI
 import qualified Data.Byteable as DB
+import qualified Data.CaseInsensitive as CI
+import Data.Conduit
+import Data.Conduit.Binary (sinkLbs)
 import Data.Function (on)
+import Data.IORef
 import qualified Data.List as L
 import Data.Maybe
 import Data.Monoid
 import Data.Monoid.Unicode
+import Data.Profunctor
 import Data.String
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Data.Typeable
 
 import qualified Network.HTTP.Types as HTTP
@@ -320,4 +355,243 @@ lambdaSignQuery LambdaQuery{..} LambdaConfiguration{..} sigData = SignedQuery
           "content-type;host;x-amz-date;x-amz-target"
           canonicalRequest
 
+data LambdaErrorResponseData
+  = LambdaErrorResponseData
+  { _lerdErrorCode ∷ !T.Text
+  , _lerdErrorMessage ∷ !T.Text
+  } deriving (Eq, Show, Typeable)
+
+-- | A lens for '_lerdErrorCode'.
+--
+-- @
+-- 'lerdErrorCode' ∷ Lens' 'LambdaErrorResponseData' 'T.Text'
+-- @
+--
+lerdErrorCode
+  ∷ Functor f
+  ⇒ (T.Text → f T.Text)
+  → LambdaErrorResponseData
+  → f LambdaErrorResponseData
+lerdErrorCode i LambdaErrorResponseData{..} =
+  (\_lerdErrorCode → LambdaErrorResponseData{..})
+    <$> i _lerdErrorCode
+{-# INLINE lerdErrorCode #-}
+
+-- | A lens for '_lerdErrorMessage'.
+--
+-- @
+-- 'lerdErrorMessage' ∷ Lens' 'LambdaErrorResponseData' 'T.Text'
+-- @
+--
+lerdErrorMessage
+  ∷ Functor f
+  ⇒ (T.Text → f T.Text)
+  → LambdaErrorResponseData
+  → f LambdaErrorResponseData
+lerdErrorMessage i LambdaErrorResponseData{..} =
+  (\_lerdErrorMessage → LambdaErrorResponseData{..})
+    <$> i _lerdErrorMessage
+{-# INLINE lerdErrorMessage #-}
+
+data LambdaOtherErrorData
+  = LambdaOtherErrorData
+  { _loedStatus ∷ !HTTP.Status
+  , _loedMessage ∷ !T.Text
+  } deriving (Eq, Show, Typeable)
+
+-- | A lens for '_loedStatus'
+--
+-- @
+-- 'loedStatus' ∷ Lens' 'LambdaOtherErrorData' 'HTTP.Status'
+-- @
+--
+loedStatus
+  ∷ Functor f
+  ⇒ (HTTP.Status → f HTTP.Status)
+  → LambdaOtherErrorData
+  → f LambdaOtherErrorData
+loedStatus i LambdaOtherErrorData{..} =
+  (\_loedStatus → LambdaOtherErrorData{..})
+    <$> i _loedStatus
+{-# INLINE loedStatus #-}
+
+-- | A lens for '_loedMessage'
+--
+-- @
+-- 'loedMessage' ∷ Lens' 'LambdaOtherErrorData' 'T.Text'
+-- @
+--
+loedMessage
+  ∷ Functor f
+  ⇒ (T.Text → f T.Text)
+  → LambdaOtherErrorData
+  → f LambdaOtherErrorData
+loedMessage i LambdaOtherErrorData{..} =
+  (\_loedMessage → LambdaOtherErrorData{..})
+    <$> i _loedMessage
+{-# INLINE loedMessage #-}
+
+data LambdaResponseJsonErrorData
+  = LambdaResponseJsonErrorData
+  { _lrjedMessage ∷ !T.Text
+  , _lrjedJSON ∷ !LB.ByteString
+  } deriving (Eq, Show, Typeable)
+
+-- | A lens for '_lrjedMessage'.
+--
+-- @
+-- 'lrjedMessage' ∷ Lens' 'LambdaResponseJsonErrorData' 'T.Text'
+-- @
+lrjedMessage
+  ∷ Functor f
+  ⇒ (T.Text → f T.Text)
+  → LambdaResponseJsonErrorData
+  → f LambdaResponseJsonErrorData
+lrjedMessage i LambdaResponseJsonErrorData{..} =
+  (\_lrjedMessage → LambdaResponseJsonErrorData{..})
+    <$> i _lrjedMessage
+
+-- | A lens for '_lrjedJSON'.
+--
+-- @
+-- 'lrjedJSON' ∷ Lens' 'LambdaResponseJsonErrorData' 'LB.ByteString'
+-- @
+lrjedJSON
+  ∷ Functor f
+  ⇒ (LB.ByteString → f LB.ByteString)
+  → LambdaResponseJsonErrorData
+  → f LambdaResponseJsonErrorData
+lrjedJSON i LambdaResponseJsonErrorData{..} =
+  (\_lrjedJSON → LambdaResponseJsonErrorData{..})
+    <$> i _lrjedJSON
+
+data LambdaErrorResponse
+  = LambdaResponseJsonError LambdaResponseJsonErrorData
+  | LambdaErrorResponse LambdaErrorResponseData
+  | LambdaOtherError LambdaOtherErrorData
+  deriving (Eq, Show, Typeable)
+
+-- | A prism for 'LambdaResponseJsonError'.
+--
+-- @
+-- '_LambdaResponseJsonError' ∷ Prism' 'LambdaErrorResponse' 'LambdaResponseJsonErrorData'
+-- @
+_LambdaResponseJsonError
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p LambdaResponseJsonErrorData (f LambdaResponseJsonErrorData)
+  → p LambdaErrorResponse (f LambdaErrorResponse)
+_LambdaResponseJsonError =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        LambdaResponseJsonError e → Right e
+        e → Left e
+      fro = either pure (fmap LambdaResponseJsonError)
+{-# INLINE _LambdaResponseJsonError #-}
+
+-- | A prism for 'LambdaErrorResponse'.
+--
+-- @
+-- '_LambdaErrorResponse' ∷ Prism' 'LambdaErrorResponse' 'LambdaErrorResponseData'
+-- @
+_LambdaErrorResponse
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p LambdaErrorResponseData (f LambdaErrorResponseData)
+  → p LambdaErrorResponse (f LambdaErrorResponse)
+_LambdaErrorResponse =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        LambdaErrorResponse e → Right e
+        e → Left e
+      fro = either pure (fmap LambdaErrorResponse)
+{-# INLINE _LambdaErrorResponse #-}
+
+-- | A prism for 'LambdaOtherError'.
+--
+-- @
+-- '_LambdaOtherError' ∷ Prism' 'LambdaErrorResponse' 'LambdaOtherErrorData'
+-- @
+_LambdaOtherError
+  ∷ ( Choice p
+    , Applicative f
+    )
+  ⇒ p LambdaOtherErrorData (f LambdaOtherErrorData)
+  → p LambdaErrorResponse (f LambdaErrorResponse)
+_LambdaOtherError =
+  dimap to fro ∘ right'
+    where
+      to = \case
+        LambdaOtherError e → Right e
+        e → Left e
+      fro = either pure (fmap LambdaOtherError)
+{-# INLINE _LambdaOtherError #-}
+
+instance Exception LambdaErrorResponse
+
+-- | This instance captures only the 'LambdaErrorResponse' constructor
+--
+instance AE.FromJSON LambdaErrorResponse where
+  parseJSON =
+    AE.withObject "LambdaErrorResponse" $ \o →
+      fmap LambdaErrorResponse $
+        pure LambdaErrorResponseData
+          ⊛ o .: "__type"
+          ⊛ o .: "message"
+
+
+-- | Create a complete 'HTTPResponseConsumer' for response types with an
+-- 'AE.FromJSON' instance
+--
+jsonResponseConsumer
+  ∷ AE.FromJSON α
+  ⇒ HTTPResponseConsumer α
+jsonResponseConsumer res = do
+  doc ← HTTP.responseBody res $$+- sinkLbs
+  case AE.eitherDecode (if doc ≡ mempty then "{}" else doc) of
+    Left e → throwM $ LambdaResponseJsonError LambdaResponseJsonErrorData
+      { _lrjedMessage = T.pack e
+      , _lrjedJSON = doc
+      }
+    Right v → return v
+
+
+lambdaResponseConsumer
+  ∷ AE.FromJSON a
+  ⇒ IORef LambdaMetadata
+  → HTTPResponseConsumer a
+lambdaResponseConsumer metadata resp = do
+
+  let headerString = fmap T.decodeUtf8 ∘ flip lookup (HTTP.responseHeaders resp)
+      requestId = headerString "x-amz-request-id"
+
+  liftIO $ tellMetadataRef metadata LambdaMetadata
+    { _lmdRequestId = requestId
+    }
+
+  if HTTP.responseStatus resp ≥ HTTP.status400
+    then errorResponseConsumer resp
+    else jsonResponseConsumer resp
+
+errorResponseConsumer ∷ HTTPResponseConsumer a
+errorResponseConsumer resp = do
+  doc ← HTTP.responseBody resp $$+- sinkLbs
+  if HTTP.responseStatus resp ≡ HTTP.status400
+    then kinesisError doc
+    else throwM $ LambdaOtherError LambdaOtherErrorData
+        { _loedStatus = HTTP.responseStatus resp
+        , _loedMessage = T.decodeUtf8 $ LB.toStrict doc
+        }
+  where
+    kinesisError doc =
+      case AE.eitherDecode doc of
+        Left e → throwM $ LambdaResponseJsonError LambdaResponseJsonErrorData
+          { _lrjedMessage = T.pack e
+          , _lrjedJSON = doc
+          }
+        Right a → throwM (a ∷ LambdaErrorResponse)
 
