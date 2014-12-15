@@ -278,6 +278,22 @@ lambdaTargetHeader a =
   , lambdaTargetVersion ⊕ "." ⊕ toText a
   )
 
+lambdaActionMethod
+  ∷ LambdaAction
+  → Method
+lambdaActionMethod = \case
+  LambdaListEventSources → Get
+  LambdaAddEventSource → Post
+  LambdaGetEventSource → Get
+  LambdaDeleteFunction → Delete
+  LambdaGetFunction → Get
+  LambdaGetFunctionConfiguration → Get
+  LambdaInvokeAsync → Post
+  LambdaListFunctions → Get
+  LambdaRemoveEventSource → Delete
+  LambdaUpdateFunctionConfiguration → Put
+  LambdaUploadFunction → Put
+
 
 -- | Creates a signed query.
 --
@@ -290,7 +306,7 @@ lambdaSignQuery
   → SignatureData
   → SignedQuery
 lambdaSignQuery LambdaQuery{..} LambdaConfiguration{..} sigData = SignedQuery
-  { sqMethod = Post
+  { sqMethod = lambdaActionMethod _lqAction
   , sqProtocol = HTTP
   , sqHost = host
   , sqPort = 80
