@@ -193,27 +193,18 @@ class AE.FromJSON resp ⇒ LambdaTransaction req resp | req → resp, resp → r
       meth → throwM $ InvalidHttpMethodException meth
     resp ^! act W.asJSON ∘ W.responseBody
 
-class LambdaTransaction req resp ⇒ ExhaustiveLambdaTransaction req resp | req → resp, resp → req where
-
-  -- | An abstract type to denote a position in a stream of data.
-  --
-  type Cursor req resp ∷ *
-
-  -- | An abstract type to represent the accumulating part of the response.
-  --
-  type Accum req resp ∷ *
-
+class (LambdaTransaction req resp, Monoid acc) ⇒ ExhaustiveLambdaTransaction req resp cur acc | req → resp cur acc where
   -- | To set the cursor in subsequent requests.
   --
-  requestCursor ∷ Setter' req (Maybe (Cursor req resp))
+  requestCursor ∷ Setter' req (Maybe cur)
 
   -- | To get the cursor in respones.
   --
-  responseCursor ∷ Getter resp (Maybe (Cursor req resp))
+  responseCursor ∷ Getter resp (Maybe cur)
 
   -- | To get the accumulating portion of the response data.
   --
-  responseAccum ∷ Getter resp (Accum req resp)
+  responseAccum ∷ Getter resp acc
 
   -- | Exhaustively iterates a request to AWS lambda and returns the
   -- accumulated results.
@@ -222,11 +213,10 @@ class LambdaTransaction req resp ⇒ ExhaustiveLambdaTransaction req resp | req 
     ∷ ( MonadThrow m
       , MonadIO m
       , Functor m
-      , Monoid (Accum req resp)
       )
     ⇒ LambdaConfiguration
     → req
-    → m (Accum req resp)
+    → m acc
   exhaustLambda cfg req = do
     resp ← runLambda cfg req
     case resp ^. responseCursor of

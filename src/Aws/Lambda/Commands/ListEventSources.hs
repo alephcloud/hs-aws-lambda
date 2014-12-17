@@ -16,6 +16,7 @@
 -- License for the specific language governing permissions and limitations
 -- under the License.
 
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE UnicodeSyntax #-}
@@ -120,10 +121,7 @@ instance LambdaTransaction ListEventSources ListEventSourcesResponse where
         ∘ (at "Marker" .~ les ^? lesMarker ∘ _Just ∘ ptText)
         ∘ (at "MaxItems" .~ les ^? lesMaxItems ∘ _Just ∘ to (T.pack ∘ show))
 
-instance ExhaustiveLambdaTransaction ListEventSources ListEventSourcesResponse where
-  type Cursor ListEventSources ListEventSourcesResponse = PaginationToken
-  type Accum ListEventSources ListEventSourcesResponse = [EventSourceConfiguration]
-
+instance ExhaustiveLambdaTransaction ListEventSources ListEventSourcesResponse PaginationToken [EventSourceConfiguration] where
   requestCursor = lesMarker
   responseCursor = lesrNextMarker
   responseAccum = lesrEventSources
