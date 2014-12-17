@@ -114,11 +114,11 @@ instance FromJSON ListEventSourcesResponse where
 instance LambdaTransaction ListEventSources ListEventSourcesResponse where
   buildQuery les =
     lambdaQuery GET "event-source-mappings"
-      & lqParams %~
-          (ix "EventSourceArn" .~ les ^. lesEventSourceArn)
-        ∘ (ix "FunctionName" .~ les ^. lesFunctionName)
-        ∘ (at "Marker" .~ les ^? lesMarker ∘ _Just ∘ ptText)
-        ∘ (at "MaxItems" .~ les ^? lesMaxItems ∘ _Just ∘ to (T.pack ∘ show))
+      & lqParams
+        %~ (ix "EventSourceArn" .~ les ^. lesEventSourceArn)
+         ∘ (ix "FunctionName" .~ les ^. lesFunctionName)
+         ∘ (at "Marker" .~ les ^? lesMarker ∘ _Just ∘ ptText)
+         ∘ (at "MaxItems" .~ les ^? lesMaxItems ∘ _Just ∘ to (T.pack ∘ show))
 
 instance ExhaustiveLambdaTransaction ListEventSources ListEventSourcesResponse PaginationToken [EventSourceConfiguration] where
   requestCursor = lesMarker
