@@ -55,11 +55,7 @@ module Aws.Lambda.Types
 import Control.Applicative
 import Control.Applicative.Unicode
 import Control.Lens
-import Control.Monad
-import Control.Monad.Unicode
 import Data.Aeson
-import Data.Aeson.Types
-import Data.Monoid
 import Data.Monoid.Unicode
 import qualified Data.Map as M
 import qualified Data.Text as T
@@ -126,7 +122,6 @@ data EventSourceConfiguration
   } deriving (Eq, Show)
 
 makeLenses ''EventSourceConfiguration
-makePrisms ''EventSourceConfiguration
 
 instance FromJSON EventSourceConfiguration where
   parseJSON =
@@ -141,5 +136,4 @@ instance FromJSON EventSourceConfiguration where
         ⊛ o .:? "Role"
         ⊛ o .:? "Status"
         ⊛ o .:? "Uuid"
-
 
