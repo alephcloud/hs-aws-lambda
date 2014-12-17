@@ -19,12 +19,14 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
 module Aws.Lambda.Core
@@ -53,12 +55,16 @@ module Aws.Lambda.Core
 , _InvalidHttpMethodException
 , InvalidRegionException
 , _InvalidRegionException
+
+  -- ** Exception Patterns
+, pattern InvalidParameterValueException
+, pattern ResourceNotFoundException
+, pattern ServiceException
 ) where
 
 import Aws.General
 
 import Control.Applicative
-import Control.Exception (Exception(..))
 import Control.Lens
 import Control.Monad.Catch
 import Control.Monad.Trans
@@ -73,6 +79,7 @@ import Data.Monoid.Unicode
 import qualified Data.Text as T
 import Data.Typeable
 import Network.HTTP.Types
+import Network.HTTP.Client
 import qualified Network.Wreq as W
 import Prelude.Unicode
 
@@ -159,6 +166,13 @@ newtype InvalidHttpMethodException
 instance Exception InvalidHttpMethodException
 
 makePrisms ''InvalidHttpMethodException
+
+pattern InvalidParameterValueException msg
+  ← StatusCodeException (Status 400 msg) _ _
+pattern ResourceNotFoundException msg
+  ← StatusCodeException (Status 400 msg) _ _
+pattern ServiceException msg
+  ← StatusCodeException (Status 500 msg) _ _
 
 -- | A class for associating a request type with a response type.
 --
