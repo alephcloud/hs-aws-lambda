@@ -17,12 +17,14 @@
 -- under the License.
 
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
 module Aws.Lambda.Core
@@ -44,6 +46,7 @@ module Aws.Lambda.Core
 
   -- * Transaction machinery
 , LambdaTransaction(..)
+, ExhaustiveLambdaTransaction(..)
 
   -- * Exceptions
 , InvalidHttpMethodException
@@ -55,7 +58,6 @@ module Aws.Lambda.Core
 import Aws.General
 
 import Control.Applicative
-import Control.Applicative.Unicode
 import Control.Exception (Exception(..))
 import Control.Lens
 import Control.Monad.Catch
@@ -66,6 +68,7 @@ import qualified Data.Aeson as AE
 import qualified Data.ByteString as B
 import qualified Data.Map as M
 import Data.Maybe
+import Data.Monoid
 import Data.Monoid.Unicode
 import qualified Data.Text as T
 import Data.Typeable
@@ -157,11 +160,18 @@ instance Exception InvalidHttpMethodException
 
 makePrisms ''InvalidHttpMethodException
 
-class AE.FromJSON resp ⇒ LambdaTransaction req resp | req → resp where
+-- | A class for associating a request type with a response type.
+--
+class AE.FromJSON resp ⇒ LambdaTransaction req resp | req → resp, resp → req where
+
+  -- | Construct a 'LambdaQuery' object from the request data.
+  --
   buildQuery
     ∷ req
     → LambdaQuery
 
+  -- | Send the request to AWS Lambda.
+  --
   runLambda
     ∷ ( MonadThrow m
       , MonadIO m
@@ -183,3 +193,46 @@ class AE.FromJSON resp ⇒ LambdaTransaction req resp | req → resp where
       meth → throwM $ InvalidHttpMethodException meth
     resp ^! act W.asJSON ∘ W.responseBody
 
+class LambdaTransaction req resp ⇒ ExhaustiveLambdaTransaction req resp | req → resp, resp → req where
+
+  -- | An abstract type to denote a position in a stream of data.
+  --
+  type Cursor req resp ∷ *
+
+  -- | An abstract type to represent the accumulating part of the response.
+  --
+  type Accum req resp ∷ *
+
+  -- | To set the cursor in subsequent requests.
+  --
+  requestCursor ∷ Setter' req (Maybe (Cursor req resp))
+
+  -- | To get the cursor in respones.
+  --
+  responseCursor ∷ Getter resp (Maybe (Cursor req resp))
+
+  -- | To get the accumulating portion of the response data.
+  --
+  responseAccum ∷ Getter resp (Accum req resp)
+
+  -- | Exhaustively iterates a request to AWS lambda and returns the
+  -- accumulated results.
+  --
+  exhaustLambda
+    ∷ ( MonadThrow m
+      , MonadIO m
+      , Functor m
+      , Monoid (Accum req resp)
+      )
+    ⇒ LambdaConfiguration
+    → req
+    → m (Accum req resp)
+  exhaustLambda cfg req = do
+    resp ← runLambda cfg req
+    case resp ^. responseCursor of
+      Just cur →
+        mappend (resp ^. responseAccum)
+          <$> exhaustLambda cfg (req & requestCursor ?~ cur)
+      Nothing →
+        return $
+          resp ^. responseAccum
