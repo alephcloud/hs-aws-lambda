@@ -40,7 +40,6 @@ module Aws.Lambda.Commands.ListEventSources
 , lesrNextMarker
 ) where
 
-import Aws.General
 import Aws.Lambda.Core
 import Aws.Lambda.Types
 
