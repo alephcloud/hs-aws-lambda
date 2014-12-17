@@ -27,9 +27,11 @@ module Aws.Lambda.Types
 ( -- * Abstract types
   PaginationToken
 , LambdaUuid
+, ConfigurationId
 
   -- ** Lenses
 , ptText
+, cidText
 
   -- * Event Source Configuration
 , EventSourceConfiguration(..)
@@ -50,6 +52,30 @@ module Aws.Lambda.Types
 , _EventSourceStatusPending
 , _EventSourceStatusOk
 , _EventSourceStatusProblem
+
+  -- * Function Configuration
+, FunctionConfiguration(..)
+, FunctionMode(..)
+, FunctionRuntime(..)
+
+-- ** Lenses
+
+, fcCodeSize
+, fcConfigurationId
+, fcDescription
+, fcFunctionArn
+, fcFunctionName
+, fcHandler
+, fcLastModified
+, fcMemorySize
+, fcMode
+, fcRole
+, fcRuntime
+, fcTimeout
+
+  -- ** Prisms
+, _FunctionModeEvent
+, _FunctionRuntimeNodeJs
 ) where
 
 import Control.Applicative
@@ -136,4 +162,74 @@ instance FromJSON EventSourceConfiguration where
         ⊛ o .:? "Role"
         ⊛ o .:? "Status"
         ⊛ o .:? "Uuid"
+
+newtype ConfigurationId
+  = ConfigurationId
+  { _cidText ∷ T.Text
+  } deriving (Eq, Show)
+
+makeLenses ''ConfigurationId
+
+instance FromJSON ConfigurationId where
+  parseJSON =
+    withText "ConfigurationId" $
+      pure ∘ ConfigurationId
+
+instance ToJSON ConfigurationId where
+  toJSON = String ∘ _cidText
+
+data FunctionMode
+  = FunctionModeEvent
+  deriving (Eq, Show)
+
+makePrisms ''FunctionMode
+
+instance FromJSON FunctionMode where
+  parseJSON (String "event") = return FunctionModeEvent
+  parseJSON xs = fail $ "Invalid FunctionMode: " ++ show xs
+
+data FunctionRuntime
+  = FunctionRuntimeNodeJs
+  deriving (Eq, Show)
+
+makePrisms ''FunctionRuntime
+
+instance FromJSON FunctionRuntime where
+  parseJSON (String "nodejs") = return FunctionRuntimeNodeJs
+  parseJSON xs = fail $ "Invalid FunctionRuntime: " ++ show xs
+
+data FunctionConfiguration
+  = FunctionConfiguration
+  { _fcCodeSize ∷ !(Maybe Integer)
+  , _fcConfigurationId ∷ !(Maybe ConfigurationId)
+  , _fcDescription ∷ !(Maybe T.Text)
+  , _fcFunctionArn ∷ !(Maybe T.Text)
+  , _fcFunctionName ∷ !(Maybe T.Text)
+  , _fcHandler ∷ !(Maybe T.Text)
+  , _fcLastModified ∷ !(Maybe UTCTime) -- TODO: make sure this parses right
+  , _fcMemorySize ∷ !(Maybe Int)
+  , _fcMode ∷ !(Maybe FunctionMode)
+  , _fcRole ∷ !(Maybe T.Text)
+  , _fcRuntime ∷ !(Maybe FunctionRuntime)
+  , _fcTimeout ∷ !(Maybe Int)
+  } deriving (Eq, Show)
+
+makeLenses ''FunctionConfiguration
+
+instance FromJSON FunctionConfiguration where
+  parseJSON =
+    withObject "FunctionConfiguration" $ \o →
+      pure FunctionConfiguration
+        ⊛ o .:? "CodeSize"
+        ⊛ o .:? "ConfigurationId"
+        ⊛ o .:? "Description"
+        ⊛ o .:? "FunctionARN"
+        ⊛ o .:? "FunctionName"
+        ⊛ o .:? "Handler"
+        ⊛ o .:? "LastModified"
+        ⊛ o .:? "MemorySize"
+        ⊛ o .:? "Mode"
+        ⊛ o .:? "Role"
+        ⊛ o .:? "Runtime"
+        ⊛ o .:? "Timeout"
 
