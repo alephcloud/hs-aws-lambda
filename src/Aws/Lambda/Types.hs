@@ -32,6 +32,7 @@ module Aws.Lambda.Types
   -- ** Lenses
 , ptText
 , cidText
+, luText
 
   -- * Event Source Configuration
 , EventSourceConfiguration(..)
@@ -115,6 +116,8 @@ newtype LambdaUuid
   = LambdaUuid
   { _luText ∷ T.Text
   } deriving (Eq, Show)
+
+makeLenses ''LambdaUuid
 
 instance FromJSON LambdaUuid where
   parseJSON =
