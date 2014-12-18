@@ -62,7 +62,7 @@ import Prelude.Unicode
 --
 data ListEventSources
   = ListEventSources
-  { _lesEventSourceArn ∷ !T.Text
+  { _lesEventSourceArn ∷ !Arn
     -- ^ The Amazon Resource Name (ARN) of the event source.
 
   , _lesFunctionName ∷ !T.Text
@@ -83,7 +83,7 @@ makeLenses ''ListEventSources
 -- | Create a minimal 'ListEventSources' request.
 --
 listEventSources
-  ∷ T.Text -- ^ The event source ARN
+  ∷ Arn -- ^ The event source ARN
   → T.Text -- ^ The function name
   → ListEventSources
 listEventSources arn func = ListEventSources
@@ -115,7 +115,7 @@ instance LambdaTransaction ListEventSources () ListEventSourcesResponse where
   buildQuery les =
     lambdaQuery GET ["event-source-mappings"]
       & lqParams
-        %~ (ix "EventSourceArn" .~ les ^. lesEventSourceArn)
+        %~ (ix "EventSourceArn" .~ les ^. lesEventSourceArn ∘ to arnToText)
          ∘ (ix "FunctionName" .~ les ^. lesFunctionName)
          ∘ (at "Marker" .~ les ^? lesMarker ∘ _Just ∘ ptText)
          ∘ (at "MaxItems" .~ les ^? lesMaxItems ∘ _Just ∘ to (T.pack ∘ show))
