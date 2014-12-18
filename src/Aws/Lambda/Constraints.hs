@@ -34,19 +34,25 @@ module Aws.Lambda.Constraints
 
 import GHC.Exts (Constraint)
 
+-- | The pointwise product of two constraint families. This sadly requires
+-- @-XUndecidableInstances@.
+--
 class (γ α, δ α) ⇒ (γ ⊗ δ) α
 instance (γ α, δ α) ⇒ (γ ⊗ δ) α
 
+-- | The dependent sum of a constraint family.
+--
 data Σ (γ ∷ * → Constraint) where
   Pack
     ∷ γ α
     ⇒ α
     → Σ γ
 
+-- | The recursion principle for the constraint family sum.
+--
 spread
   ∷ Σ γ
   → (∀ α. γ α ⇒ α → β)
   → β
 spread (Pack x) e = e x
-
 
