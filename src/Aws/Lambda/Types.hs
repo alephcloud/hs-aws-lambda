@@ -59,7 +59,6 @@ module Aws.Lambda.Types
 , FunctionRuntime(..)
 
 -- ** Lenses
-
 , fcCodeSize
 , fcConfigurationId
 , fcDescription
@@ -76,6 +75,11 @@ module Aws.Lambda.Types
   -- ** Prisms
 , _FunctionModeEvent
 , _FunctionRuntimeNodeJs
+
+-- * Misc
+, StreamPosition(..)
+, _StreamPositionTrimHorizon
+, _StreamPositionLatest
 ) where
 
 import Control.Applicative
@@ -195,8 +199,9 @@ data FunctionRuntime
 makePrisms ''FunctionRuntime
 
 instance FromJSON FunctionRuntime where
-  parseJSON (String "nodejs") = return FunctionRuntimeNodeJs
-  parseJSON xs = fail $ "Invalid FunctionRuntime: " ++ show xs
+  parseJSON = \case
+    String "nodejs" → return FunctionRuntimeNodeJs
+    xs → fail $ "Invalid FunctionRuntime: " ++ show xs
 
 data FunctionConfiguration
   = FunctionConfiguration
@@ -233,3 +238,20 @@ instance FromJSON FunctionConfiguration where
         ⊛ o .:? "Runtime"
         ⊛ o .:? "Timeout"
 
+data StreamPosition
+  = StreamPositionTrimHorizon
+  | StreamPositionLatest
+  deriving (Eq, Show)
+
+makePrisms ''StreamPosition
+
+instance FromJSON StreamPosition where
+  parseJSON = \case
+    String "TRIM_HORIZON" → return StreamPositionTrimHorizon
+    String "LATEST" → return StreamPositionLatest
+    xs → fail $ "Invalid StreamPosition: " ++ show xs
+
+instance ToJSON StreamPosition where
+  toJSON = \case
+    StreamPositionTrimHorizon → "TRIM_HORIZON"
+    StreamPositionLatest → "LATEST"

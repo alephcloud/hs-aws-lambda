@@ -14,7 +14,8 @@ library
   exposed-modules:     Aws.Lambda.Core,
                        Aws.Lambda.Types,
                        Aws.Lambda.Commands.ListEventSources,
-                       Aws.Lambda.Commands.ListFunctions
+                       Aws.Lambda.Commands.ListFunctions,
+                       Aws.Lambda.Commands.AddEventSource
   build-depends:       base >=4.7 && <4.8,
                        base-unicode-symbols,
                        aeson >=0.8.0.2,
