@@ -105,5 +105,5 @@ instance LambdaTransaction UpdateFunctionConfiguration () UpdateFunctionConfigur
         %~ (at "Description" .~ fc ^. fcDescription)
          ∘ (at "Handler" .~ fc ^. fcHandler)
          ∘ (at "MemorySize" .~ fc ^? fcMemorySize ∘ _Just ∘ to (T.pack ∘ show))
-         ∘ (at "Role" .~ fc ^. fcRole)
+         ∘ (at "Role" .~ fc ^? fcRole ∘ _Just ∘ to arnToText)
          ∘ (at "Timeout" .~ fc ^? fcTimeout ∘ _Just ∘ to (T.pack ∘ show))

@@ -294,7 +294,7 @@ data FunctionConfiguration
   , _fcLastModified ∷ !(Maybe UTCTime) -- TODO: make sure this parses right
   , _fcMemorySize ∷ !(Maybe Int)
   , _fcMode ∷ !(Maybe FunctionMode)
-  , _fcRole ∷ !(Maybe T.Text)
+  , _fcRole ∷ !(Maybe Arn)
   , _fcRuntime ∷ !(Maybe FunctionRuntime)
   , _fcTimeout ∷ !(Maybe Int)
   } deriving (Eq, Show)
