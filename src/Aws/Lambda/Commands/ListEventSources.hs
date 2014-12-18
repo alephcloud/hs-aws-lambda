@@ -120,7 +120,7 @@ instance LambdaTransaction ListEventSources ListEventSourcesResponse where
          ∘ (at "Marker" .~ les ^? lesMarker ∘ _Just ∘ ptText)
          ∘ (at "MaxItems" .~ les ^? lesMaxItems ∘ _Just ∘ to (T.pack ∘ show))
 
-instance ExhaustiveLambdaTransaction ListEventSources ListEventSourcesResponse PaginationToken [EventSourceConfiguration] where
+instance PagedLambdaTransaction ListEventSources ListEventSourcesResponse PaginationToken [EventSourceConfiguration] where
   requestCursor = lesMarker
   responseCursor = lesrNextMarker
   responseAccum = lesrEventSources

@@ -88,7 +88,7 @@ instance LambdaTransaction ListFunctions ListFunctionsResponse where
         %~ (at "Marker" .~ lf ^? lfMarker ∘ _Just ∘ ptText)
          ∘ (at "MaxItems" .~ lf ^? lfMaxItems ∘ _Just ∘ to (T.pack ∘ show))
 
-instance ExhaustiveLambdaTransaction ListFunctions ListFunctionsResponse PaginationToken [FunctionConfiguration] where
+instance PagedLambdaTransaction ListFunctions ListFunctionsResponse PaginationToken [FunctionConfiguration] where
   requestCursor = lfMarker
   responseCursor = lfrNextMarker
   responseAccum = lfrFunctions

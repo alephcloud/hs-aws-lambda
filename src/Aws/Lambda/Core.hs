@@ -48,7 +48,7 @@ module Aws.Lambda.Core
 
   -- * Transaction machinery
 , LambdaTransaction(..)
-, ExhaustiveLambdaTransaction(..)
+, PagedLambdaTransaction(..)
 
   -- * Exceptions
 , InvalidHttpMethodException
@@ -207,7 +207,7 @@ class AE.FromJSON resp ⇒ LambdaTransaction req resp | req → resp, resp → r
       meth → throwM $ InvalidHttpMethodException meth
     resp ^! act W.asJSON ∘ W.responseBody
 
-class (LambdaTransaction req resp, Monoid acc) ⇒ ExhaustiveLambdaTransaction req resp cur acc | req → resp cur acc where
+class (LambdaTransaction req resp, Monoid acc) ⇒ PagedLambdaTransaction req resp cur acc | req → resp cur acc where
   -- | To set the cursor in subsequent requests.
   --
   requestCursor ∷ Setter' req (Maybe cur)
@@ -223,7 +223,7 @@ class (LambdaTransaction req resp, Monoid acc) ⇒ ExhaustiveLambdaTransaction r
   -- | Exhaustively iterates a request to AWS lambda and returns the
   -- accumulated results.
   --
-  exhaustLambda
+  pagedRunLambda
     ∷ ( MonadThrow m
       , MonadIO m
       , Functor m
@@ -231,12 +231,12 @@ class (LambdaTransaction req resp, Monoid acc) ⇒ ExhaustiveLambdaTransaction r
     ⇒ LambdaConfiguration
     → req
     → m acc
-  exhaustLambda cfg req = do
+  pagedRunLambda cfg req = do
     resp ← runLambda cfg req
     case resp ^. responseCursor of
       Just cur →
         mappend (resp ^. responseAccum)
-          <$> exhaustLambda cfg (req & requestCursor ?~ cur)
+          <$> pagedRunLambda cfg (req & requestCursor ?~ cur)
       Nothing →
         return $
           resp ^. responseAccum
