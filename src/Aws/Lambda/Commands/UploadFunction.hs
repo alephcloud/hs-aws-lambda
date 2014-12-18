@@ -62,7 +62,7 @@ data UploadFunction
   , _ufHandler ∷ !T.Text
   , _ufMemorySize ∷ !Int
   , _ufMode ∷ !FunctionMode
-  , _ufRole ∷ !T.Text
+  , _ufRole ∷ !Arn
   , _ufRuntime ∷ !FunctionRuntime
   , _ufTimeout ∷ !Int
   , _ufRawCode ∷ !B.ByteString
@@ -84,7 +84,7 @@ instance LambdaTransaction UploadFunction B.ByteString UploadFunctionResponse wh
          ∘ (at "Handler" ?~ uf ^. ufHandler)
          ∘ (at "MemorySize" ?~ uf ^. ufMemorySize ∘ to (T.pack ∘ show))
          ∘ (at "Mode" ?~ uf ^. ufMode ∘ re _TextFunctionMode)
-         ∘ (at "Role" ?~ uf ^. ufRole)
+         ∘ (at "Role" ?~ uf ^. ufRole ∘ to arnToText)
          ∘ (at "Runtime" ?~ uf ^. ufRuntime ∘ re _TextFunctionRuntime)
          ∘ (at "Timeout" ?~ uf ^. ufTimeout ∘ to (T.pack ∘ show))
     where
