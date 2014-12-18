@@ -158,7 +158,7 @@ instance FromJSON StreamPosition where
   parseJSON = \case
     String "TRIM_HORIZON" → return StreamPositionTrimHorizon
     String "LATEST" → return StreamPositionLatest
-    xs → fail $ "Invalid StreamPosition: " ++ show xs
+    xs → fail $ "Invalid StreamPosition: " ⊕ show xs
 
 instance ToJSON StreamPosition where
   toJSON = \case
@@ -237,7 +237,7 @@ makePrisms ''FunctionMode
 instance FromJSON FunctionMode where
   parseJSON = \case
     String "Event" → return FunctionModeEvent
-    xs → fail $ "Invalid FunctionMode: " ++ show xs
+    xs → fail $ "Invalid FunctionMode: " ⊕ show xs
 
 data FunctionRuntime
   = FunctionRuntimeNodeJs
@@ -248,7 +248,7 @@ makePrisms ''FunctionRuntime
 instance FromJSON FunctionRuntime where
   parseJSON = \case
     String "nodejs" → return FunctionRuntimeNodeJs
-    xs → fail $ "Invalid FunctionRuntime: " ++ show xs
+    xs → fail $ "Invalid FunctionRuntime: " ⊕ show xs
 
 data FunctionConfiguration
   = FunctionConfiguration
