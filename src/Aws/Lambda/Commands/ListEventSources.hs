@@ -113,7 +113,7 @@ instance FromJSON ListEventSourcesResponse where
 
 instance LambdaTransaction ListEventSources ListEventSourcesResponse where
   buildQuery les =
-    lambdaQuery GET "event-source-mappings"
+    lambdaQuery GET ["event-source-mappings"]
       & lqParams
         %~ (ix "EventSourceArn" .~ les ^. lesEventSourceArn)
          ∘ (ix "FunctionName" .~ les ^. lesFunctionName)

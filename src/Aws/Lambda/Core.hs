@@ -42,7 +42,7 @@ module Aws.Lambda.Core
 , lambdaQuery
   -- ** Lenses
 , lqMethod
-, lqEndpoint
+, lqPath
 , lqParams
 , lqBody
 
@@ -106,7 +106,7 @@ data LambdaQuery
   = LambdaQuery
   { _lqBody ∷ !(Maybe AE.Value)
   , _lqParams ∷ !(M.Map T.Text T.Text)
-  , _lqEndpoint ∷ !T.Text
+  , _lqPath ∷ ![T.Text]
   , _lqMethod ∷ !StdMethod
   } deriving (Eq, Show)
 
@@ -116,11 +116,11 @@ makeLenses ''LambdaQuery
 --
 lambdaQuery
   ∷ StdMethod
-  → T.Text
+  → [T.Text]
   → LambdaQuery
-lambdaQuery meth ep = LambdaQuery
+lambdaQuery meth p = LambdaQuery
   { _lqMethod = meth
-  , _lqEndpoint = ep
+  , _lqPath = p
   , _lqBody = Nothing
   , _lqParams = M.empty
   }
@@ -136,7 +136,7 @@ makePrisms ''InvalidRegionException
 lambdaEndpointUrl
   ∷ MonadThrow m
   ⇒ Region -- ^ The AWS region to target
-  → T.Text -- ^ The name of the AWS Lambda endpoint
+  → [T.Text] -- ^ The path of the AWS Lambda endpoint
   → m String
 lambdaEndpointUrl r e = do
   subdomain ← case r of
@@ -145,7 +145,7 @@ lambdaEndpointUrl r e = do
     EuWest1 → return "eu-west-1"
     _ → throwM $ InvalidRegionException r
   return $
-    "https://lambda." ⊕ subdomain ⊕ ".amazonaws.com/2014-11-13/" ⊕ T.unpack e
+    "https://lambda." ⊕ subdomain ⊕ ".amazonaws.com/2014-11-13/" ⊕ (T.unpack $ T.intercalate "/" e)
 
 liftThrow
   ∷ ( MonadThrow m
@@ -198,7 +198,7 @@ class AE.FromJSON resp ⇒ LambdaTransaction req resp | req → resp, resp → r
         opts = lambdaOptions cfg W.defaults
           & W.params <>~ query ^. lqParams ∘ to M.toList
         body = query ^. lqBody ∘ to (fromMaybe AE.Null)
-    url ← lambdaEndpointUrl (cfg ^. lcRegion) (query ^. lqEndpoint)
+    url ← lambdaEndpointUrl (cfg ^. lcRegion) (query ^. lqPath)
     resp ← case query ^. lqMethod of
       GET → liftThrow $ W.getWith opts url
       POST → liftThrow $ W.postWith opts url body

@@ -103,5 +103,5 @@ instance FromJSON AddEventSourceResponse where
 
 instance LambdaTransaction AddEventSource AddEventSourceResponse where
   buildQuery aes =
-    lambdaQuery POST "event-source-mappings"
+    lambdaQuery POST ["event-source-mappings"]
       & lqBody ?~ toJSON aes

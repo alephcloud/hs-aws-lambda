@@ -83,7 +83,7 @@ instance FromJSON ListFunctionsResponse where
 
 instance LambdaTransaction ListFunctions ListFunctionsResponse where
   buildQuery lf =
-    lambdaQuery GET "functions"
+    lambdaQuery GET ["functions"]
       & lqParams
         %~ (at "Marker" .~ lf ^? lfMarker ∘ _Just ∘ ptText)
          ∘ (at "MaxItems" .~ lf ^? lfMaxItems ∘ _Just ∘ to (T.pack ∘ show))

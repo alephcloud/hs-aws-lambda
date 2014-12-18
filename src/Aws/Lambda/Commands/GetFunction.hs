@@ -44,7 +44,6 @@ import Control.Applicative
 import Control.Applicative.Unicode
 import Control.Lens
 import Data.Aeson
-import Data.Monoid.Unicode
 import Network.HTTP.Types
 import qualified Data.Text as T
 
@@ -79,5 +78,5 @@ instance FromJSON GetFunctionResponse where
 
 instance LambdaTransaction GetFunction GetFunctionResponse where
   buildQuery gf =
-    lambdaQuery GET ("functions/" ⊕ gf ^. gfFunctionName)
+    lambdaQuery GET ["functions", gf ^. gfFunctionName]
 

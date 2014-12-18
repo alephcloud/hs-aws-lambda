@@ -39,7 +39,6 @@ import Aws.Lambda.Core
 
 import Control.Lens
 import Data.Aeson
-import Data.Monoid.Unicode
 import qualified Data.Text as T
 import Network.HTTP.Types
 
@@ -66,5 +65,5 @@ instance FromJSON DeleteFunctionResponse where
 
 instance LambdaTransaction DeleteFunction DeleteFunctionResponse where
   buildQuery df =
-    lambdaQuery DELETE ("functions/" ⊕ df ^. dfFunctionName)
+    lambdaQuery DELETE ["functions", df ^. dfFunctionName]
 
