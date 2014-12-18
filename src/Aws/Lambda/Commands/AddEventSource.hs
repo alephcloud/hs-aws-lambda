@@ -78,7 +78,7 @@ data AddEventSource
   -- ^ The largest number of records that AWS Lambda will give to your function
   -- in a single event. The default is 100 records.
 
-  , _aesEventSource ∷ !T.Text
+  , _aesEventSource ∷ !Arn
   -- ^ The Amazon Resource Name (ARN) of the Amazon Kinesis stream that is the
   -- event source. Any record added to this stream causes AWS Lambda to invoke
   -- your Lambda function. AWS Lambda POSTs the Amazon Kinesis event,
@@ -99,7 +99,7 @@ data AddEventSource
 -- | A minimal 'AddEventSource' request.
 --
 addEventSource
-  ∷ T.Text -- ^ '_aesEventSource'
+  ∷ Arn -- ^ '_aesEventSource'
   → T.Text -- ^ '_aesFunctionName'
   → T.Text -- ^ '_aesRole'
   → AddEventSource
