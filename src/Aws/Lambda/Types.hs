@@ -102,7 +102,8 @@ newtype PaginationToken
   { _ptText ∷ T.Text
   } deriving (Eq, Show)
 
-makeLenses ''PaginationToken
+ptText ∷ Getter PaginationToken T.Text
+ptText = to _ptText
 
 instance FromJSON PaginationToken where
   parseJSON =
@@ -117,7 +118,8 @@ newtype LambdaUuid
   { _luText ∷ T.Text
   } deriving (Eq, Show)
 
-makeLenses ''LambdaUuid
+luText ∷ Getter LambdaUuid T.Text
+luText = to _luText
 
 instance FromJSON LambdaUuid where
   parseJSON =
@@ -215,7 +217,8 @@ newtype ConfigurationId
   { _cidText ∷ T.Text
   } deriving (Eq, Show)
 
-makeLenses ''ConfigurationId
+cidText ∷ Getter ConfigurationId T.Text
+cidText = to _cidText
 
 instance FromJSON ConfigurationId where
   parseJSON =
