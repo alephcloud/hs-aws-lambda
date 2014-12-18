@@ -235,8 +235,9 @@ data FunctionMode
 makePrisms ''FunctionMode
 
 instance FromJSON FunctionMode where
-  parseJSON (String "event") = return FunctionModeEvent
-  parseJSON xs = fail $ "Invalid FunctionMode: " ++ show xs
+  parseJSON = \case
+    String "Event" → return FunctionModeEvent
+    xs → fail $ "Invalid FunctionMode: " ++ show xs
 
 data FunctionRuntime
   = FunctionRuntimeNodeJs
