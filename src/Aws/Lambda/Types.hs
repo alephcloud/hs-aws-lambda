@@ -35,6 +35,7 @@ module Aws.Lambda.Types
 
   -- * Event Source Configuration
 , EventSourceConfiguration(..)
+, EventSourceParameters(..)
 , EventSourceStatus
 
   -- ** Lenses
@@ -47,6 +48,7 @@ module Aws.Lambda.Types
 , escRole
 , escStatus
 , escUuid
+, espInitialPositionInStream
 
   -- ** Prisms
 , _EventSourceStatusPending
@@ -84,10 +86,9 @@ module Aws.Lambda.Types
 
 import Control.Applicative
 import Control.Applicative.Unicode
-import Control.Lens
+import Control.Lens hiding ((.=))
 import Data.Aeson
 import Data.Monoid.Unicode
-import qualified Data.Map as M
 import qualified Data.Text as T
 import Data.Time
 import Prelude.Unicode
@@ -138,6 +139,42 @@ instance FromJSON EventSourceStatus where
         'P':'R':'O':'B':'L':'E':'M':':':msg → pure ∘ EventSourceStatusProblem $ T.pack msg
         st → fail $ "Invalid EventSourceStatus: " ⊕ st
 
+data StreamPosition
+  = StreamPositionTrimHorizon
+  | StreamPositionLatest
+  deriving (Eq, Show)
+
+makePrisms ''StreamPosition
+
+instance FromJSON StreamPosition where
+  parseJSON = \case
+    String "TRIM_HORIZON" → return StreamPositionTrimHorizon
+    String "LATEST" → return StreamPositionLatest
+    xs → fail $ "Invalid StreamPosition: " ++ show xs
+
+instance ToJSON StreamPosition where
+  toJSON = \case
+    StreamPositionTrimHorizon → "TRIM_HORIZON"
+    StreamPositionLatest → "LATEST"
+
+data EventSourceParameters
+  = EventSourceParameters
+  { _espInitialPositionInStream ∷ !(Maybe StreamPosition)
+  } deriving (Eq, Show)
+
+makeLenses ''EventSourceParameters
+
+instance FromJSON EventSourceParameters where
+  parseJSON =
+    withObject "EventSourceParameters" $ \o →
+      pure EventSourceParameters
+        ⊛ o .:? "InitialPositionInStream"
+
+instance ToJSON EventSourceParameters where
+  toJSON EventSourceParameters{..} = object
+    [ "InitialPositionInStream" .= _espInitialPositionInStream
+    ]
+
 data EventSourceConfiguration
   = EventSourceConfiguration
   { _escBatchSize ∷ !(Maybe Int)
@@ -145,7 +182,7 @@ data EventSourceConfiguration
   , _escFunctionName ∷ !(Maybe T.Text)
   , _escIsActive ∷ !(Maybe Bool)
   , _escLastModified ∷ !(Maybe UTCTime)
-  , _escParameters ∷ !(Maybe (M.Map T.Text T.Text))
+  , _escParameters ∷ !(Maybe EventSourceParameters)
   , _escRole ∷ !(Maybe T.Text)
   , _escStatus ∷ !(Maybe EventSourceStatus)
   , _escUuid ∷ !(Maybe LambdaUuid)
@@ -238,20 +275,3 @@ instance FromJSON FunctionConfiguration where
         ⊛ o .:? "Runtime"
         ⊛ o .:? "Timeout"
 
-data StreamPosition
-  = StreamPositionTrimHorizon
-  | StreamPositionLatest
-  deriving (Eq, Show)
-
-makePrisms ''StreamPosition
-
-instance FromJSON StreamPosition where
-  parseJSON = \case
-    String "TRIM_HORIZON" → return StreamPositionTrimHorizon
-    String "LATEST" → return StreamPositionLatest
-    xs → fail $ "Invalid StreamPosition: " ++ show xs
-
-instance ToJSON StreamPosition where
-  toJSON = \case
-    StreamPositionTrimHorizon → "TRIM_HORIZON"
-    StreamPositionLatest → "LATEST"

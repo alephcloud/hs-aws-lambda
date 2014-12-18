@@ -27,7 +27,6 @@
 module Aws.Lambda.Commands.AddEventSource
 ( -- * Request
   AddEventSource(..)
-, AddEventSourceParameters(..)
 , addEventSource
 
   -- ** Lenses
@@ -36,13 +35,11 @@ module Aws.Lambda.Commands.AddEventSource
 , aesFunctionName
 , aesParameters
 , aesRole
-, aespInitialPositionInStream
 
   -- * Response
 , AddEventSourceResponse(..)
 
   -- ** Lenses
-, aesrParameters
 , aesrConfiguration
 ) where
 
@@ -56,30 +53,12 @@ import Data.Aeson
 import qualified Data.Text as T
 import Network.HTTP.Types
 
-data AddEventSourceParameters
-  = AddEventSourceParameters
-  { _aespInitialPositionInStream ∷ !(Maybe StreamPosition)
-  } deriving (Eq, Show)
-
-makeLenses ''AddEventSourceParameters
-
-instance FromJSON AddEventSourceParameters where
-  parseJSON =
-    withObject "AddEventSourceParameters" $ \o →
-      pure AddEventSourceParameters
-        ⊛ o .:? "InitialPositionInStream"
-
-instance ToJSON AddEventSourceParameters where
-  toJSON AddEventSourceParameters{..} = object
-    [ "InitialPositionInStream" .= _aespInitialPositionInStream
-    ]
-
 data AddEventSource
   = AddEventSource
   { _aesBatchSize ∷ !(Maybe Integer)
   , _aesEventSource ∷ !T.Text
   , _aesFunctionName ∷ !T.Text
-  , _aesParameters ∷ !(Maybe AddEventSourceParameters)
+  , _aesParameters ∷ !(Maybe EventSourceParameters)
   , _aesRole ∷ !T.Text
   } deriving (Eq, Show)
 
@@ -111,8 +90,7 @@ makeLenses ''AddEventSource
 
 data AddEventSourceResponse
   = AddEventSourceResponse
-  { _aesrParameters ∷ !(Maybe AddEventSourceParameters)
-  , _aesrConfiguration ∷ !EventSourceConfiguration
+  { _aesrConfiguration ∷ !EventSourceConfiguration
   } deriving (Eq, Show)
 
 makeLenses ''AddEventSourceResponse
@@ -121,7 +99,6 @@ instance FromJSON AddEventSourceResponse where
   parseJSON =
     withObject "AddEventSourceResponse" $ \o →
       pure AddEventSourceResponse
-        ⊛ o .:? "Parameters"
         ⊛ parseJSON (Object o)
 
 instance LambdaTransaction AddEventSource AddEventSourceResponse where
