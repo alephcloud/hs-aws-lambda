@@ -82,6 +82,9 @@ module Aws.Lambda.Types
 , StreamPosition(..)
 , _StreamPositionTrimHorizon
 , _StreamPositionLatest
+, FunctionCodeLocation(..)
+, fclLocation
+, fclRepositoryType
 ) where
 
 import Control.Applicative
@@ -275,3 +278,22 @@ instance FromJSON FunctionConfiguration where
         ⊛ o .:? "Runtime"
         ⊛ o .:? "Timeout"
 
+
+data FunctionCodeLocation
+  = FunctionCodeLocation
+  { _fclLocation ∷ !(Maybe T.Text)
+    -- ^ The presigned URL you can use to download the function's @.zip@ file
+    -- that you previously uploaded. The URL is valid for up to 10 minutes.
+
+  , _fclRepositoryType ∷ !(Maybe T.Text)
+    -- ^ The repository from which you can download the function.
+  } deriving (Eq, Show)
+
+makeLenses ''FunctionCodeLocation
+
+instance FromJSON FunctionCodeLocation where
+  parseJSON =
+    withObject "FunctionCodeLocation" $ \o →
+      pure FunctionCodeLocation
+        ⊛ o .:? "Location"
+        ⊛ o .:? "RepositoryType"
