@@ -20,6 +20,7 @@ library
                        Aws.Lambda.Commands.GetFunctionConfiguration,
                        Aws.Lambda.Commands.UpdateFunctionConfiguration,
                        Aws.Lambda.Commands.DeleteFunction,
+                       Aws.Lambda.Commands.UploadFunction,
                        Aws.Lambda.Commands.AddEventSource,
                        Aws.Lambda.Commands.GetEventSource,
                        Aws.Lambda.Commands.RemoveEventSource,
