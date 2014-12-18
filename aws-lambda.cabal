@@ -15,6 +15,7 @@ library
                        Aws.Lambda.Types,
                        Aws.Lambda.Commands.ListEventSources,
                        Aws.Lambda.Commands.ListFunctions,
+                       Aws.Lambda.Commands.GetFunction,
                        Aws.Lambda.Commands.DeleteFunction,
                        Aws.Lambda.Commands.AddEventSource
   build-depends:       base >=4.7 && <4.8,
