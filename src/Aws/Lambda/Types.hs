@@ -236,7 +236,7 @@ makePrisms ''FunctionMode
 
 instance FromJSON FunctionMode where
   parseJSON = \case
-    String "Event" → return FunctionModeEvent
+    String "event" → return FunctionModeEvent
     xs → fail $ "Invalid FunctionMode: " ⊕ show xs
 
 data FunctionRuntime
