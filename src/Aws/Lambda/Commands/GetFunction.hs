@@ -76,7 +76,7 @@ instance FromJSON GetFunctionResponse where
         ⊛ o .: "Code"
         ⊛ o .: "Configuration"
 
-instance LambdaTransaction GetFunction GetFunctionResponse where
+instance LambdaTransaction GetFunction () GetFunctionResponse where
   buildQuery gf =
     lambdaQuery GET ["functions", gf ^. gfFunctionName]
 

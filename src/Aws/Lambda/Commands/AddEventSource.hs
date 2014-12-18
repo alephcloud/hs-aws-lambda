@@ -45,12 +45,14 @@ module Aws.Lambda.Commands.AddEventSource
 ) where
 
 import Aws.Lambda.Core
+import Aws.Lambda.Constraints
 import Aws.Lambda.Types
 
 import Control.Lens hiding ((.=))
 import Data.Aeson
 import qualified Data.Text as T
 import Network.HTTP.Types
+import Prelude.Unicode
 
 data AddEventSource
   = AddEventSource
@@ -85,6 +87,9 @@ instance ToJSON AddEventSource where
     , "Role" .= _aesRole
     ]
 
+instance LambdaPayload AddEventSource where
+  packagePayload = Pack ∘ toJSON
+
 makeLenses ''AddEventSource
 
 newtype AddEventSourceResponse
@@ -94,7 +99,6 @@ newtype AddEventSourceResponse
 
 makeLenses ''AddEventSourceResponse
 
-instance LambdaTransaction AddEventSource AddEventSourceResponse where
+instance LambdaTransaction AddEventSource AddEventSource AddEventSourceResponse where
   buildQuery aes =
-    lambdaQuery POST ["event-source-mappings"]
-      & lqBody ?~ toJSON aes
+    lambdaQuery' POST ["event-source-mappings"] aes

@@ -57,6 +57,6 @@ newtype GetFunctionConfigurationResponse
   { _gfcrFunctionConfiguration ∷ FunctionConfiguration
   } deriving (Eq, Show, FromJSON)
 
-instance LambdaTransaction GetFunctionConfiguration GetFunctionConfigurationResponse where
+instance LambdaTransaction GetFunctionConfiguration () GetFunctionConfigurationResponse where
   buildQuery gfc =
     lambdaQuery GET ["functions", gfc ^. gfcFunctionName, "configuration"]

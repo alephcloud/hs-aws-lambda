@@ -97,7 +97,7 @@ newtype UpdateFunctionConfigurationResponse
 
 makeLenses ''UpdateFunctionConfigurationResponse
 
-instance LambdaTransaction UpdateFunctionConfiguration UpdateFunctionConfigurationResponse where
+instance LambdaTransaction UpdateFunctionConfiguration () UpdateFunctionConfigurationResponse where
   buildQuery ufc =
     let fc = ufc ^. ufcConfiguration
     in lambdaQuery PUT ["functions", ufc ^. ufcFunctionName, "configuration"]

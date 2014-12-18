@@ -63,6 +63,6 @@ data RemoveEventSourceResponse
 instance FromJSON RemoveEventSourceResponse where
   parseJSON _ = return RemoveEventSourceResponse
 
-instance LambdaTransaction RemoveEventSource RemoveEventSourceResponse where
+instance LambdaTransaction RemoveEventSource () RemoveEventSourceResponse where
   buildQuery res =
     lambdaQuery DELETE ["event-source-mappings", res ^. resUuid ∘ luText]

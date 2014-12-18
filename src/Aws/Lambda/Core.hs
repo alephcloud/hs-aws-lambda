@@ -16,17 +16,21 @@
 -- License for the specific language governing permissions and limitations
 -- under the License.
 
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
 module Aws.Lambda.Core
@@ -40,6 +44,7 @@ module Aws.Lambda.Core
   -- * Client query
 , LambdaQuery(..)
 , lambdaQuery
+, lambdaQuery'
   -- ** Lenses
 , lqMethod
 , lqPath
@@ -48,6 +53,7 @@ module Aws.Lambda.Core
 
   -- * Transaction machinery
 , LambdaTransaction(..)
+, LambdaPayload(..)
 , PagedLambdaTransaction(..)
 
   -- * Exceptions
@@ -63,6 +69,7 @@ module Aws.Lambda.Core
 ) where
 
 import Aws.General
+import Aws.Lambda.Constraints
 
 import Control.Applicative
 import Control.Lens
@@ -73,7 +80,6 @@ import Control.Monad.Unicode
 import qualified Data.Aeson as AE
 import qualified Data.ByteString as B
 import qualified Data.Map as M
-import Data.Maybe
 import Data.Monoid
 import Data.Monoid.Unicode
 import qualified Data.Text as T
@@ -81,6 +87,7 @@ import Data.Typeable
 import Network.HTTP.Types
 import Network.HTTP.Client
 import qualified Network.Wreq as W
+import qualified Network.Wreq.Types as WT
 import Prelude.Unicode
 
 data LambdaConfiguration
@@ -102,9 +109,21 @@ lambdaOptions lc =
     , W.header "Accept" .~ ["application/json"]
     ]
 
-data LambdaQuery
+class LambdaPayload body where
+  packagePayload
+    ∷ body
+    → Σ (WT.Postable ⊗ WT.Putable)
+
+instance LambdaPayload () where
+  packagePayload () = Pack B.empty
+instance LambdaPayload B.ByteString where
+  packagePayload b = Pack b
+instance LambdaPayload AE.Value where
+  packagePayload x = Pack x
+
+data LambdaQuery body
   = LambdaQuery
-  { _lqBody ∷ !(Maybe AE.Value)
+  { _lqBody ∷ !body
   , _lqParams ∷ !(M.Map T.Text T.Text)
   , _lqPath ∷ ![T.Text]
   , _lqMethod ∷ !StdMethod
@@ -115,13 +134,28 @@ makeLenses ''LambdaQuery
 -- | A convenience constructor for a basic query.
 --
 lambdaQuery
-  ∷ StdMethod
+  ∷ Monoid body
+  ⇒ StdMethod
   → [T.Text]
-  → LambdaQuery
+  → LambdaQuery body
 lambdaQuery meth p = LambdaQuery
   { _lqMethod = meth
   , _lqPath = p
-  , _lqBody = Nothing
+  , _lqBody = mempty
+  , _lqParams = M.empty
+  }
+
+-- | A variant of 'lambdaQuery' that requires a body.
+--
+lambdaQuery'
+  ∷ StdMethod
+  → [T.Text]
+  → body
+  → LambdaQuery body
+lambdaQuery' meth p b = LambdaQuery
+  { _lqMethod = meth
+  , _lqPath = p
+  , _lqBody = b
   , _lqParams = M.empty
   }
 
@@ -176,13 +210,13 @@ pattern ServiceException msg
 
 -- | A class for associating a request type with a response type.
 --
-class AE.FromJSON resp ⇒ LambdaTransaction req resp | req → resp, resp → req where
+class (LambdaPayload body, AE.FromJSON resp) ⇒ LambdaTransaction req body resp | req → resp body, resp → req where
 
   -- | Construct a 'LambdaQuery' object from the request data.
   --
   buildQuery
     ∷ req
-    → LambdaQuery
+    → LambdaQuery body
 
   -- | Send the request to AWS Lambda.
   --
@@ -197,17 +231,19 @@ class AE.FromJSON resp ⇒ LambdaTransaction req resp | req → resp, resp → r
     let query = buildQuery req
         opts = lambdaOptions cfg W.defaults
           & W.params <>~ query ^. lqParams ∘ to M.toList
-        body = query ^. lqBody ∘ to (fromMaybe AE.Null)
-    url ← lambdaEndpointUrl (cfg ^. lcRegion) (query ^. lqPath)
-    resp ← case query ^. lqMethod of
-      GET → liftThrow $ W.getWith opts url
-      POST → liftThrow $ W.postWith opts url body
-      PUT → liftThrow $ W.putWith opts url body
-      DELETE → liftThrow $ W.deleteWith opts url
-      meth → throwM $ InvalidHttpMethodException meth
-    resp ^! act W.asJSON ∘ W.responseBody
+        body = query ^. lqBody ∘ to packagePayload
 
-class (LambdaTransaction req resp, Monoid acc) ⇒ PagedLambdaTransaction req resp cur acc | req → resp cur acc where
+    url ← lambdaEndpointUrl (cfg ^. lcRegion) (query ^. lqPath)
+    spread body $ \payload → do
+      resp ← case query ^. lqMethod of
+        GET → liftThrow $ W.getWith opts url
+        POST → liftThrow $ W.postWith opts url payload
+        PUT → liftThrow $ W.putWith opts url payload
+        DELETE → liftThrow $ W.deleteWith opts url
+        meth → throwM $ InvalidHttpMethodException meth
+      resp ^! act W.asJSON ∘ W.responseBody
+
+class (LambdaTransaction req body resp, Monoid acc) ⇒ PagedLambdaTransaction req body resp cur acc | req → resp cur acc where
   -- | To set the cursor in subsequent requests.
   --
   requestCursor ∷ Setter' req (Maybe cur)

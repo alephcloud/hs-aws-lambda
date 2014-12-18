@@ -71,6 +71,6 @@ instance FromJSON InvokeAsyncResponse where
       pure InvokeAsyncResponse
         ⊛ o .: "Status"
 
-instance LambdaTransaction InvokeAsync InvokeAsyncResponse where
+instance LambdaTransaction InvokeAsync () InvokeAsyncResponse where
   buildQuery ia =
     lambdaQuery POST ["functions", ia ^. iaFunctionName, "invoke-async"]

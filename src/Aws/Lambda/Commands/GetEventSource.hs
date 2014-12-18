@@ -67,7 +67,7 @@ newtype GetEventSourceResponse
 
 makeLenses ''GetEventSourceResponse
 
-instance LambdaTransaction GetEventSource GetEventSourceResponse where
+instance LambdaTransaction GetEventSource () GetEventSourceResponse where
   buildQuery ges =
     lambdaQuery GET ["event-source-mappings", ges ^. gesUuid ∘ luText]
 

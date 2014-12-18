@@ -13,6 +13,7 @@ cabal-version:       >=1.10
 library
   exposed-modules:     Aws.Lambda.Core,
                        Aws.Lambda.Types,
+                       Aws.Lambda.Constraints,
                        Aws.Lambda.Commands.ListEventSources,
                        Aws.Lambda.Commands.ListFunctions,
                        Aws.Lambda.Commands.GetFunction,

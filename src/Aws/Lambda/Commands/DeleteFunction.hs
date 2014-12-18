@@ -63,7 +63,7 @@ data DeleteFunctionResponse
 instance FromJSON DeleteFunctionResponse where
   parseJSON _ = return DeleteFunctionResponse
 
-instance LambdaTransaction DeleteFunction DeleteFunctionResponse where
+instance LambdaTransaction DeleteFunction () DeleteFunctionResponse where
   buildQuery df =
     lambdaQuery DELETE ["functions", df ^. dfFunctionName]
 

@@ -81,14 +81,14 @@ instance FromJSON ListFunctionsResponse where
         ⊛ o .:? "Functions" .!= []
         ⊛ o .:? "NextMarker"
 
-instance LambdaTransaction ListFunctions ListFunctionsResponse where
+instance LambdaTransaction ListFunctions () ListFunctionsResponse where
   buildQuery lf =
     lambdaQuery GET ["functions"]
       & lqParams
         %~ (at "Marker" .~ lf ^? lfMarker ∘ _Just ∘ ptText)
          ∘ (at "MaxItems" .~ lf ^? lfMaxItems ∘ _Just ∘ to (T.pack ∘ show))
 
-instance PagedLambdaTransaction ListFunctions ListFunctionsResponse PaginationToken [FunctionConfiguration] where
+instance PagedLambdaTransaction ListFunctions () ListFunctionsResponse PaginationToken [FunctionConfiguration] where
   requestCursor = lfMarker
   responseCursor = lfrNextMarker
   responseAccum = lfrFunctions
