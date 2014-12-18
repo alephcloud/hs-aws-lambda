@@ -13,7 +13,8 @@ cabal-version:       >=1.10
 library
   exposed-modules:     Aws.Lambda.Core,
                        Aws.Lambda.Types,
-                       Aws.Lambda.Commands.ListEventSources
+                       Aws.Lambda.Commands.ListEventSources,
+                       Aws.Lambda.Commands.ListFunctions
   build-depends:       base >=4.7 && <4.8,
                        base-unicode-symbols,
                        aeson >=0.8.0.2,
