@@ -36,18 +36,24 @@ module Aws.Lambda.Commands.UploadFunction
 , ufRole
 , ufRuntime
 , ufTimeout
-, ufCodeBundle
+, ufRawCode
+, ufLastModified
 ) where
 
 import Aws.Lambda.Core
 import Aws.Lambda.Types
 
-import Control.Lens
+import qualified Codec.Archive.Zip as Z
+import Control.Lens hiding ((<.>))
 import Data.Aeson
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as LB
 import qualified Data.Text as T
+import Data.Time
+import Data.Time.Clock.POSIX
 import Network.HTTP.Types
 import Prelude.Unicode
+import System.FilePath
 
 data UploadFunction
   = UploadFunction
@@ -59,7 +65,8 @@ data UploadFunction
   , _ufRole ∷ !T.Text
   , _ufRuntime ∷ !FunctionRuntime
   , _ufTimeout ∷ !Int
-  , _ufCodeBundle ∷ !B.ByteString
+  , _ufRawCode ∷ !B.ByteString
+  , _ufLastModified ∷ !UTCTime
   } deriving (Eq, Show)
 
 makeLenses ''UploadFunction
@@ -71,7 +78,7 @@ newtype UploadFunctionResponse
 
 instance LambdaTransaction UploadFunction B.ByteString UploadFunctionResponse where
   buildQuery uf =
-    lambdaQuery' PUT ["functions", uf ^. ufFunctionName] (uf ^. ufCodeBundle)
+    lambdaQuery' PUT ["functions", uf ^. ufFunctionName] archivedSource
       & lqParams
         %~ (at "Description" ?~ uf ^. ufDescription)
          ∘ (at "Handler" ?~ uf ^. ufHandler)
@@ -80,3 +87,15 @@ instance LambdaTransaction UploadFunction B.ByteString UploadFunctionResponse wh
          ∘ (at "Role" ?~ uf ^. ufRole)
          ∘ (at "Runtime" ?~ uf ^. ufRuntime ∘ re _TextFunctionRuntime)
          ∘ (at "Timeout" ?~ uf ^. ufTimeout ∘ to (T.pack ∘ show))
+    where
+      extension =
+        case uf ^. ufRuntime of
+          FunctionRuntimeNodeJs → "js"
+
+      archivedSource =
+        LB.toStrict ∘ Z.fromArchive ∘ flip Z.addEntryToArchive Z.emptyArchive $
+          Z.toEntry
+            (uf ^. ufFunctionName ∘ to T.unpack <.> extension)
+            (uf ^. ufLastModified ∘ to (round ∘ utcTimeToPOSIXSeconds))
+            (uf ^. ufRawCode ∘ to LB.fromStrict)
+
