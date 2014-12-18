@@ -60,6 +60,8 @@ module Aws.Lambda.Types
 , FunctionConfiguration(..)
 , FunctionMode(..)
 , FunctionRuntime(..)
+, functionModeToText
+, functionRuntimeToText
 
 -- ** Lenses
 , fcCodeSize
@@ -78,6 +80,8 @@ module Aws.Lambda.Types
   -- ** Prisms
 , _FunctionModeEvent
 , _FunctionRuntimeNodeJs
+, _TextFunctionMode
+, _TextFunctionRuntime
 
 -- * Misc
 , StreamPosition(..)
@@ -239,6 +243,18 @@ instance FromJSON FunctionMode where
     String "event" → return FunctionModeEvent
     xs → fail $ "Invalid FunctionMode: " ⊕ show xs
 
+functionModeToText
+  ∷ FunctionMode
+  → T.Text
+functionModeToText = \case
+  FunctionModeEvent → "event"
+
+_TextFunctionMode ∷ Prism' T.Text FunctionMode
+_TextFunctionMode =
+  prism functionModeToText $ \case
+    "event" → Right FunctionModeEvent
+    txt → Left txt
+
 data FunctionRuntime
   = FunctionRuntimeNodeJs
   deriving (Eq, Show)
@@ -249,6 +265,19 @@ instance FromJSON FunctionRuntime where
   parseJSON = \case
     String "nodejs" → return FunctionRuntimeNodeJs
     xs → fail $ "Invalid FunctionRuntime: " ⊕ show xs
+
+functionRuntimeToText
+  ∷ FunctionRuntime
+  → T.Text
+functionRuntimeToText = \case
+  FunctionRuntimeNodeJs → "nodejs"
+
+_TextFunctionRuntime ∷ Prism' T.Text FunctionRuntime
+_TextFunctionRuntime =
+  prism functionRuntimeToText $ \case
+    "nodejs" → Right FunctionRuntimeNodeJs
+    txt → Left txt
+
 
 data FunctionConfiguration
   = FunctionConfiguration
