@@ -17,6 +17,7 @@
 -- under the License.
 
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -39,15 +40,14 @@ module Aws.Lambda.Commands.AddEventSource
   -- * Response
 , AddEventSourceResponse(..)
 
-  -- ** Lenses
+  -- ** Lenses & Prisms
 , aesrConfiguration
+, _AddEventSourceResponse
 ) where
 
 import Aws.Lambda.Core
 import Aws.Lambda.Types
 
-import Control.Applicative
-import Control.Applicative.Unicode
 import Control.Lens hiding ((.=))
 import Data.Aeson
 import qualified Data.Text as T
@@ -88,18 +88,13 @@ instance ToJSON AddEventSource where
 
 makeLenses ''AddEventSource
 
-data AddEventSourceResponse
+newtype AddEventSourceResponse
   = AddEventSourceResponse
-  { _aesrConfiguration ∷ !EventSourceConfiguration
-  } deriving (Eq, Show)
+  { _aesrConfiguration ∷ EventSourceConfiguration
+  } deriving (Eq, Show, FromJSON)
 
 makeLenses ''AddEventSourceResponse
-
-instance FromJSON AddEventSourceResponse where
-  parseJSON =
-    withObject "AddEventSourceResponse" $ \o →
-      pure AddEventSourceResponse
-        ⊛ parseJSON (Object o)
+makePrisms ''AddEventSourceResponse
 
 instance LambdaTransaction AddEventSource AddEventSourceResponse where
   buildQuery aes =
