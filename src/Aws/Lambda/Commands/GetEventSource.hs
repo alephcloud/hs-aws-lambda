@@ -34,7 +34,7 @@ module Aws.Lambda.Commands.GetEventSource
 
   -- * Response
 , GetEventSourceResponse(..)
-  -- ** Lenses & Prisms
+  -- ** Lenses
 , gesrConfiguration
 ) where
 
