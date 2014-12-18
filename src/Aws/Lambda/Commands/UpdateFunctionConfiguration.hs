@@ -32,6 +32,15 @@ module Aws.Lambda.Commands.UpdateFunctionConfiguration
 , updateFunctionConfiguration
   -- ** Lenses
 , ufcConfiguration
+
+  -- * Response
+, UpdateFunctionConfigurationResponse(..)
+  -- ** Lenses
+, ufcrFunctionConfiguration
+
+  -- * Exceptions
+, UpdateFunctionConfigurationException(..)
+, _MissingFunctionName
 ) where
 
 import Aws.Lambda.Core
@@ -62,6 +71,8 @@ data UpdateFunctionConfigurationException
   = MissingFunctionName !FunctionConfiguration
   deriving (Eq, Show, Typeable)
 
+makePrisms ''UpdateFunctionConfigurationException
+
 instance Exception UpdateFunctionConfigurationException
 
 -- | A minimal, validated 'UpdateFunctionConfiguration' request. Not providing
@@ -83,6 +94,8 @@ newtype UpdateFunctionConfigurationResponse
   = UpdateFunctionConfigurationResponse
   { _ufcrFunctionConfiguration ∷ FunctionConfiguration
   } deriving (Eq, Show, FromJSON)
+
+makeLenses ''UpdateFunctionConfigurationResponse
 
 instance LambdaTransaction UpdateFunctionConfiguration UpdateFunctionConfigurationResponse where
   buildQuery ufc =
