@@ -20,6 +20,7 @@ library
                        Aws.Lambda.Commands.DeleteFunction,
                        Aws.Lambda.Commands.AddEventSource,
                        Aws.Lambda.Commands.GetEventSource,
+                       Aws.Lambda.Commands.RemoveEventSource,
                        Aws.Lambda.Commands.InvokeAsync
   build-depends:       base >=4.7 && <4.8,
                        base-unicode-symbols,
