@@ -36,7 +36,6 @@ module Aws.Lambda.Commands.GetEventSource
 , GetEventSourceResponse(..)
   -- ** Lenses & Prisms
 , gesrConfiguration
-, _GetEventSourceResponse
 ) where
 
 import Aws.Lambda.Core
@@ -67,7 +66,6 @@ newtype GetEventSourceResponse
   } deriving (Eq, Show, FromJSON)
 
 makeLenses ''GetEventSourceResponse
-makePrisms ''GetEventSourceResponse
 
 instance LambdaTransaction GetEventSource GetEventSourceResponse where
   buildQuery ges =

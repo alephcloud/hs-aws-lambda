@@ -40,9 +40,8 @@ module Aws.Lambda.Commands.AddEventSource
   -- * Response
 , AddEventSourceResponse(..)
 
-  -- ** Lenses & Prisms
+  -- ** Lenses
 , aesrConfiguration
-, _AddEventSourceResponse
 ) where
 
 import Aws.Lambda.Core
@@ -94,7 +93,6 @@ newtype AddEventSourceResponse
   } deriving (Eq, Show, FromJSON)
 
 makeLenses ''AddEventSourceResponse
-makePrisms ''AddEventSourceResponse
 
 instance LambdaTransaction AddEventSource AddEventSourceResponse where
   buildQuery aes =
