@@ -42,15 +42,8 @@ module Aws.Lambda.Commands.AddEventSource
 , AddEventSourceResponse(..)
 
   -- ** Lenses
-, aesrBatchSize
-, aesrEventSource
-, aesrFunctionName
 , aesrParameters
-, aesrRole
-, aesrStatus
-, aesrIsActive
-, aesrLastModified
-, aesrUuid
+, aesrConfiguration
 ) where
 
 import Aws.Lambda.Core
@@ -61,7 +54,6 @@ import Control.Applicative.Unicode
 import Control.Lens hiding ((.=))
 import Data.Aeson
 import qualified Data.Text as T
-import Data.Time
 import Network.HTTP.Types
 
 data AddEventSourceParameters
@@ -119,15 +111,8 @@ makeLenses ''AddEventSource
 
 data AddEventSourceResponse
   = AddEventSourceResponse
-  { _aesrBatchSize ∷ !(Maybe Int)
-  , _aesrEventSource ∷ !T.Text
-  , _aesrFunctionName ∷ !T.Text
-  , _aesrIsActive ∷ !Bool
-  , _aesrLastModified ∷ !UTCTime
-  , _aesrParameters ∷ !(Maybe AddEventSourceParameters)
-  , _aesrRole ∷ !T.Text
-  , _aesrStatus ∷ !EventSourceStatus
-  , _aesrUuid ∷ !LambdaUuid
+  { _aesrParameters ∷ !(Maybe AddEventSourceParameters)
+  , _aesrConfiguration ∷ !EventSourceConfiguration
   } deriving (Eq, Show)
 
 makeLenses ''AddEventSourceResponse
@@ -136,15 +121,8 @@ instance FromJSON AddEventSourceResponse where
   parseJSON =
     withObject "AddEventSourceResponse" $ \o →
       pure AddEventSourceResponse
-        ⊛ o .:? "BatchSize"
-        ⊛ o .: "EventSource"
-        ⊛ o .: "FunctionName"
-        ⊛ o .: "IsActive"
-        ⊛ o .: "LastModified"
         ⊛ o .:? "Parameters"
-        ⊛ o .: "Role"
-        ⊛ o .: "Status"
-        ⊛ o .: "UUID"
+        ⊛ parseJSON (Object o)
 
 instance LambdaTransaction AddEventSource AddEventSourceResponse where
   buildQuery aes =
