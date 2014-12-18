@@ -199,7 +199,7 @@ data EventSourceConfiguration
   , _escIsActive ∷ !(Maybe Bool)
   , _escLastModified ∷ !(Maybe UTCTime)
   , _escParameters ∷ !(Maybe EventSourceParameters)
-  , _escRole ∷ !(Maybe T.Text)
+  , _escRole ∷ !(Maybe Arn)
   , _escStatus ∷ !(Maybe EventSourceStatus)
   , _escUuid ∷ !(Maybe LambdaUuid)
   } deriving (Eq, Show)
