@@ -90,7 +90,11 @@ module Aws.Lambda.Types
 , FunctionCodeLocation(..)
 , fclLocation
 , fclRepositoryType
+
+, module Aws.General
 ) where
+
+import Aws.General
 
 import Control.Applicative
 import Control.Applicative.Unicode
@@ -284,7 +288,7 @@ data FunctionConfiguration
   { _fcCodeSize ∷ !(Maybe Integer)
   , _fcConfigurationId ∷ !(Maybe ConfigurationId)
   , _fcDescription ∷ !(Maybe T.Text)
-  , _fcFunctionArn ∷ !(Maybe T.Text)
+  , _fcFunctionArn ∷ !(Maybe Arn)
   , _fcFunctionName ∷ !(Maybe T.Text)
   , _fcHandler ∷ !(Maybe T.Text)
   , _fcLastModified ∷ !(Maybe UTCTime) -- TODO: make sure this parses right
