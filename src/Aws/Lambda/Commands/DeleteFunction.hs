@@ -42,6 +42,9 @@ import Data.Aeson
 import qualified Data.Text as T
 import Network.HTTP.Types
 
+-- | Deletes the specified Lambda function code and configuration.  This
+-- operation requires permission for the @lambda:DeleteFunction@ action.
+--
 data DeleteFunction
   = DeleteFunction
   { _dfFunctionName ∷ !T.Text
