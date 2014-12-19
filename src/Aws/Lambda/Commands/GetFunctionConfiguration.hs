@@ -40,6 +40,13 @@ import Data.Aeson
 import qualified Data.Text as T
 import Network.HTTP.Types
 
+-- | Returns the configuration information of the Lambda function. This the
+-- same information you provided as parameters when uploading the function by
+-- using @UploadFunction@.
+--
+-- This operation requires permission for the @lambda:GetFunctionConfiguration@
+-- operation.
+--
 data GetFunctionConfiguration
   = GetFunctionConfiguration
   { _gfcFunctionName ∷ !T.Text
