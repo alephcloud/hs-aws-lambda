@@ -42,9 +42,15 @@ import Control.Lens
 import Network.HTTP.Types
 import Prelude.Unicode
 
+-- | Removes an event source mapping. This means AWS Lambda will no longer
+-- invoke the function for events in the associated source.
+--
+-- This operation requires permission for the @lambda:RemoveEventSource@ action.
+--
 data RemoveEventSource
   = RemoveEventSource
   { _resUuid ∷ !LambdaUuid
+  -- ^ The event source mapping ID.
   }
 
 -- | A minimal 'RemoveEventSource' request.
