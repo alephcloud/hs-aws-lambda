@@ -49,11 +49,23 @@ import qualified Data.Text as T
 import Network.HTTP.Types
 import Prelude.Unicode
 
+-- | Returns a list of your Lambda functions. For each function, the response
+-- includes the function configuration information. You must use @GetFunction@ to
+-- retrieve the code for your function.
+--
+-- This operation requires permission for the @lambda:ListFunctions@ action.
+--
 
 data ListFunctions
   = ListFunctions
   { _lfMarker ∷ !(Maybe PaginationToken)
+  -- ^  An opaque pagination token returned from a previous 'ListFunctions'
+  -- operation. If present, indicates where to continue the listing.
+
   , _lfMaxItems ∷ !(Maybe Int)
+  -- ^ Specifies the maximum number of AWS Lambda functions to return in
+  -- response. This parameter value must be greater than @0@ and less than
+  -- @10000@.
   } deriving (Eq, Show)
 
 makeLenses ''ListFunctions
@@ -69,7 +81,10 @@ listFunctions = ListFunctions
 data ListFunctionsResponse
   = ListFunctionsResponse
   { _lfrFunctions ∷ ![FunctionConfiguration]
+  -- ^ A list of Lambda functions.
+
   , _lfrNextMarker ∷ !(Maybe PaginationToken)
+  -- ^ A token whose presence indicates that more functions are available.
   } deriving (Eq, Show)
 
 makeLenses ''ListFunctionsResponse
