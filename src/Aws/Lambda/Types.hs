@@ -91,11 +91,10 @@ module Aws.Lambda.Types
 , FunctionCodeLocation(..)
 , fclLocation
 , fclRepositoryType
-
-, module Aws.General
+, Arn
+, arnToText
 ) where
 
-import Aws.General
 import Aws.Lambda.Internal.Utils
 
 import Control.Applicative
@@ -107,6 +106,13 @@ import Data.Monoid.Unicode
 import qualified Data.Text as T
 import Data.Time
 import Prelude.Unicode
+
+type Arn = T.Text
+
+arnToText
+  ∷ Arn
+  → T.Text
+arnToText = id
 
 newtype PaginationToken
   = PaginationToken
