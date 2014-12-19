@@ -16,11 +16,12 @@
 -- License for the specific language governing permissions and limitations
 -- under the License.
 
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
 module Aws.Lambda.Types
@@ -93,6 +94,9 @@ module Aws.Lambda.Types
 , fclRepositoryType
 , Arn
 , arnToText
+, LambdaDateTime(..)
+, _LambdaDateTime
+, _TextLambdaDateTime
 ) where
 
 import Aws.Lambda.Internal.Utils
@@ -106,6 +110,7 @@ import Data.Monoid.Unicode
 import qualified Data.Text as T
 import Data.Time
 import Prelude.Unicode
+import System.Locale
 
 type Arn = T.Text
 
@@ -205,6 +210,31 @@ _TextStreamPosition =
     "LATEST" → Right StreamPositionLatest
     txt → Left txt
 
+newtype LambdaDateTime
+  = LambdaDateTime
+  { _ldtUTCTime ∷ UTCTime
+  } deriving (Eq, Ord, Show, ParseTime, FormatTime)
+
+makePrisms ''LambdaDateTime
+
+lambdaDateTimeFormat ∷ String
+lambdaDateTimeFormat = "%FT%T%Q%Z"
+
+_TextLambdaDateTime ∷ Prism' T.Text LambdaDateTime
+_TextLambdaDateTime =
+  prism (T.pack ∘ formatTime defaultTimeLocale lambdaDateTimeFormat) $ \txt →
+    case parseTime defaultTimeLocale lambdaDateTimeFormat (T.unpack txt) of
+      Just dt → Right dt
+      Nothing → Left txt
+
+instance ToJSON LambdaDateTime where
+  toJSON = review $ _String ∘ _TextLambdaDateTime
+
+instance FromJSON LambdaDateTime where
+  parseJSON =
+    parserWithPrism "LambdaDateTime" $
+      _String ∘ _TextLambdaDateTime
+
 data EventSourceParameters
   = EventSourceParameters
   { _espInitialPositionInStream ∷ !(Maybe StreamPosition)
@@ -229,7 +259,7 @@ data EventSourceConfiguration
   , _escEventSource ∷ !(Maybe T.Text)
   , _escFunctionName ∷ !(Maybe T.Text)
   , _escIsActive ∷ !(Maybe Bool)
-  , _escLastModified ∷ !(Maybe UTCTime)
+  , _escLastModified ∷ !(Maybe LambdaDateTime)
   , _escParameters ∷ !(Maybe EventSourceParameters)
   , _escRole ∷ !(Maybe Arn)
   , _escStatus ∷ !(Maybe EventSourceStatus)
@@ -314,7 +344,6 @@ _TextFunctionRuntime =
     "nodejs" → Right FunctionRuntimeNodeJs
     txt → Left txt
 
-
 data FunctionConfiguration
   = FunctionConfiguration
   { _fcCodeSize ∷ !(Maybe Integer)
@@ -323,7 +352,7 @@ data FunctionConfiguration
   , _fcFunctionArn ∷ !(Maybe Arn)
   , _fcFunctionName ∷ !(Maybe T.Text)
   , _fcHandler ∷ !(Maybe T.Text)
-  , _fcLastModified ∷ !(Maybe UTCTime) -- TODO: make sure this parses right
+  , _fcLastModified ∷ !(Maybe LambdaDateTime)
   , _fcMemorySize ∷ !(Maybe Int)
   , _fcMode ∷ !(Maybe FunctionMode)
   , _fcRole ∷ !(Maybe Arn)
@@ -335,7 +364,7 @@ makeLenses ''FunctionConfiguration
 
 instance FromJSON FunctionConfiguration where
   parseJSON =
-    withObject "FunctionConfiguration" $ \o →
+    withObject "FunctionConfiguration" $ \o → do
       pure FunctionConfiguration
         ⊛ o .:? "CodeSize"
         ⊛ o .:? "ConfigurationId"
