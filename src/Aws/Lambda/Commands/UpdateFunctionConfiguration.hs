@@ -55,6 +55,16 @@ import Data.Typeable
 import Network.HTTP.Types
 import Prelude.Unicode
 
+-- | Updates the configuration parameters for the specified Lambda function by
+-- using the values provided in the request. You provide only the parameters
+-- you want to change. This operation must only be used on an existing Lambda
+-- function and cannot be used to update the function's code.
+--
+-- This operation requires permission for the
+-- @lambda:UpdateFunctionConfiguration@ action.
+--
+-- The 'UpdateFunctionConfiguration' type is abstract.
+--
 data UpdateFunctionConfiguration
   = UpdateFunctionConfiguration
   { _ufcConfiguration ∷ !FunctionConfiguration
