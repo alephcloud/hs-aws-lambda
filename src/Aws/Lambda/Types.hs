@@ -55,6 +55,7 @@ module Aws.Lambda.Types
 , _EventSourceStatusPending
 , _EventSourceStatusOk
 , _EventSourceStatusProblem
+, _TextEventSourceStatus
 
   -- * Function Configuration
 , FunctionConfiguration(..)
@@ -95,11 +96,13 @@ module Aws.Lambda.Types
 ) where
 
 import Aws.General
+import Aws.Lambda.Internal.Utils
 
 import Control.Applicative
 import Control.Applicative.Unicode
 import Control.Lens hiding ((.=))
 import Data.Aeson
+import Data.Aeson.Lens
 import Data.Monoid.Unicode
 import qualified Data.Text as T
 import Data.Time
@@ -137,7 +140,6 @@ instance FromJSON LambdaUuid where
 instance ToJSON LambdaUuid where
   toJSON = String ∘ _luText
 
-
 data EventSourceStatus
   = EventSourceStatusPending
   | EventSourceStatusOk
@@ -148,12 +150,25 @@ makePrisms ''EventSourceStatus
 
 instance FromJSON EventSourceStatus where
   parseJSON =
-    withText "EventSourceStatus" $ \txt →
-      case (T.unpack txt) of
-        "PENDING" → pure EventSourceStatusPending
-        "OK" → pure EventSourceStatusOk
-        'P':'R':'O':'B':'L':'E':'M':':':msg → pure ∘ EventSourceStatusProblem $ T.pack msg
-        st → fail $ "Invalid EventSourceStatus: " ⊕ st
+    parserWithPrism "EventSourceStatus" $
+      _String ∘ _TextEventSourceStatus
+
+eventSourceStatusToText
+  ∷ EventSourceStatus
+  → T.Text
+eventSourceStatusToText = \case
+  EventSourceStatusPending → "PENDING"
+  EventSourceStatusOk → "OK"
+  EventSourceStatusProblem msg → "PROBLEM:" ⊕ msg
+
+_TextEventSourceStatus ∷ Prism' T.Text EventSourceStatus
+_TextEventSourceStatus =
+  prism eventSourceStatusToText $ \txt →
+    case (T.unpack txt) of
+      "PENDING" → Right EventSourceStatusPending
+      "OK" → Right EventSourceStatusOk
+      'P':'R':'O':'B':'L':'E':'M':':':msg → Right ∘ EventSourceStatusProblem $ T.pack msg
+      _ → Left txt
 
 data StreamPosition
   = StreamPositionTrimHorizon
@@ -163,15 +178,26 @@ data StreamPosition
 makePrisms ''StreamPosition
 
 instance FromJSON StreamPosition where
-  parseJSON = \case
-    String "TRIM_HORIZON" → return StreamPositionTrimHorizon
-    String "LATEST" → return StreamPositionLatest
-    xs → fail $ "Invalid StreamPosition: " ⊕ show xs
+  parseJSON =
+    parserWithPrism "StreamPosition" $
+      _String ∘ _TextStreamPosition
 
 instance ToJSON StreamPosition where
-  toJSON = \case
-    StreamPositionTrimHorizon → "TRIM_HORIZON"
-    StreamPositionLatest → "LATEST"
+  toJSON = review $ _String ∘ _TextStreamPosition
+
+streamPositionToText
+  ∷ StreamPosition
+  → T.Text
+streamPositionToText = \case
+  StreamPositionTrimHorizon → "TRIM_HORIZON"
+  StreamPositionLatest → "LATEST"
+
+_TextStreamPosition ∷ Prism' T.Text StreamPosition
+_TextStreamPosition =
+  prism streamPositionToText $ \case
+    "TRIM_HORIZON" → Right StreamPositionTrimHorizon
+    "LATEST" → Right StreamPositionLatest
+    txt → Left txt
 
 data EventSourceParameters
   = EventSourceParameters
@@ -243,9 +269,9 @@ data FunctionMode
 makePrisms ''FunctionMode
 
 instance FromJSON FunctionMode where
-  parseJSON = \case
-    String "event" → return FunctionModeEvent
-    xs → fail $ "Invalid FunctionMode: " ⊕ show xs
+  parseJSON =
+    parserWithPrism "FunctionMode" $
+      _String ∘ _TextFunctionMode
 
 functionModeToText
   ∷ FunctionMode
@@ -266,9 +292,9 @@ data FunctionRuntime
 makePrisms ''FunctionRuntime
 
 instance FromJSON FunctionRuntime where
-  parseJSON = \case
-    String "nodejs" → return FunctionRuntimeNodeJs
-    xs → fail $ "Invalid FunctionRuntime: " ⊕ show xs
+  parseJSON =
+    parserWithPrism "FunctionRuntime" $
+      _String ∘ _TextFunctionRuntime
 
 functionRuntimeToText
   ∷ FunctionRuntime
