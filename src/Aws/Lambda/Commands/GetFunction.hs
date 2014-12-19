@@ -47,6 +47,14 @@ import Data.Aeson
 import Network.HTTP.Types
 import qualified Data.Text as T
 
+-- | Returns the configuration information of the Lambda function and a
+-- presigned URL link to the @.zip@ file you uploaded with @UploadFunction@ so
+-- you can download the @.zip@ file. Note that the URL is valid for up to 10
+-- minutes.  The configuration information is the same information you provided
+-- as parameters when uploading the function.
+--
+-- This operation requires permission for the @lambda:GetFunction@ action.
+--
 data GetFunction
   = GetFunction
   { _gfFunctionName ∷ !T.Text
