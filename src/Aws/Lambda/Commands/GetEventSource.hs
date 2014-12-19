@@ -46,9 +46,13 @@ import Data.Aeson
 import Network.HTTP.Types
 import Prelude.Unicode
 
+-- | Returns configuration information for the specified event source mapping.
+-- This operation requires permission for the @lambda:GetEventSource@ action.
+--
 data GetEventSource
   = GetEventSource
   { _gesUuid ∷ !LambdaUuid
+  -- ^ The AWS Lambda assigned ID of the event source mapping.
   } deriving (Eq, Show)
 
 makeLenses ''GetEventSource
