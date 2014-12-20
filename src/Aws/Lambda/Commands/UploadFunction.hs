@@ -63,6 +63,9 @@ import System.FilePath
 --
 -- This operation requires permission for the @lambda:UploadFunction@ action.
 --
+-- Note that these bindings take care of packaging up the function source code
+-- as a @.zip@ file automatically.
+--
 data UploadFunction
   = UploadFunction
   { _ufDescription ∷ !T.Text
