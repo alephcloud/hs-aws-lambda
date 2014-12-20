@@ -79,6 +79,7 @@ import Control.Monad.Unicode
 
 import qualified Data.Aeson as AE
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as LB
 import qualified Data.Map as M
 import Data.Monoid
 import Data.Monoid.Unicode
@@ -208,6 +209,18 @@ pattern ResourceNotFoundException msg
 pattern ServiceException msg
   ← StatusCodeException (Status 500 msg) _ _
 
+
+asJSON'
+  ∷ ( MonadThrow m
+    , MonadCatch m
+    , AE.FromJSON α
+    )
+  ⇒ Response LB.ByteString
+  → m (Response α)
+asJSON' resp =
+  catch (W.asJSON resp) $ \(e ∷ WT.JSONError) → do
+    W.asJSON resp { responseBody = "{}" }
+
 -- | A class for associating a request type with a response type.
 --
 class (LambdaPayload body, AE.FromJSON resp) ⇒ LambdaTransaction req body resp | req → resp body, resp → req where
@@ -222,6 +235,7 @@ class (LambdaPayload body, AE.FromJSON resp) ⇒ LambdaTransaction req body resp
   --
   runLambda
     ∷ ( MonadThrow m
+      , MonadCatch m
       , MonadIO m
       )
     ⇒ LambdaConfiguration
@@ -241,7 +255,7 @@ class (LambdaPayload body, AE.FromJSON resp) ⇒ LambdaTransaction req body resp
         PUT → liftThrow $ W.putWith opts url payload
         DELETE → liftThrow $ W.deleteWith opts url
         meth → throwM $ InvalidHttpMethodException meth
-      resp ^! act W.asJSON ∘ W.responseBody
+      resp ^! act asJSON' ∘ W.responseBody
 
 class (LambdaTransaction req body resp, Monoid acc) ⇒ PagedLambdaTransaction req body resp cur acc | req → resp cur acc where
   -- | To set the cursor in subsequent requests.
@@ -261,6 +275,7 @@ class (LambdaTransaction req body resp, Monoid acc) ⇒ PagedLambdaTransaction r
   --
   pagedRunLambda
     ∷ ( MonadThrow m
+      , MonadCatch m
       , MonadIO m
       , Functor m
       )
