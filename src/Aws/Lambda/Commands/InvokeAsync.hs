@@ -29,10 +29,10 @@ module Aws.Lambda.Commands.InvokeAsync
 , invokeAsync
   -- ** Lenses
 , iaFunctionName
+, iaArguments
 
   -- * Response
 , InvokeAsyncResponse(..)
-, iarStatus
 ) where
 
 import Aws.Lambda.Core
@@ -53,6 +53,7 @@ import Network.HTTP.Types
 data InvokeAsync
   = InvokeAsync
   { _iaFunctionName ∷ !T.Text
+  , _iaArguments ∷ !Value
   } deriving (Eq, Show)
 
 makeLenses ''InvokeAsync
@@ -62,21 +63,20 @@ makeLenses ''InvokeAsync
 invokeAsync
   ∷ T.Text -- ^ '_iaFunctionName'
   → InvokeAsync
-invokeAsync = InvokeAsync
+invokeAsync fn = InvokeAsync fn $ object []
 
 data InvokeAsyncResponse
   = InvokeAsyncResponse
-  { _iarStatus ∷ !Int
-  } deriving (Eq, Show)
+  deriving (Eq, Show)
 
 makeLenses ''InvokeAsyncResponse
 
 instance FromJSON InvokeAsyncResponse where
-  parseJSON =
-    withObject "InvokeAsyncResponse" $ \o →
-      pure InvokeAsyncResponse
-        ⊛ o .: "Status"
+  parseJSON _ = pure InvokeAsyncResponse
 
-instance LambdaTransaction InvokeAsync () InvokeAsyncResponse where
+instance LambdaTransaction InvokeAsync Value InvokeAsyncResponse where
   buildQuery ia =
-    lambdaQuery POST ["functions", ia ^. iaFunctionName, "invoke-async"]
+    lambdaQuery'
+      POST
+      ["functions", ia ^. iaFunctionName, "invoke-async"]
+      (ia ^. iaArguments)
