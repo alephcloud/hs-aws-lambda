@@ -59,6 +59,7 @@ module Aws.Lambda.Types
 
   -- * Function Configuration
 , FunctionConfiguration(..)
+, emptyFunctionConfiguration
 , FunctionMode(..)
 , FunctionRuntime(..)
 , functionModeToText
@@ -371,6 +372,24 @@ data FunctionConfiguration
   } deriving (Eq, Show)
 
 makeLenses ''FunctionConfiguration
+
+-- | An empty 'FunctionConfiguration' object.
+--
+emptyFunctionConfiguration ∷ FunctionConfiguration
+emptyFunctionConfiguration = FunctionConfiguration
+  { _fcCodeSize = Nothing
+  , _fcConfigurationId = Nothing
+  , _fcDescription = Nothing
+  , _fcFunctionArn = Nothing
+  , _fcFunctionName = Nothing
+  , _fcHandler = Nothing
+  , _fcLastModified = Nothing
+  , _fcMemorySize = Nothing
+  , _fcMode = Nothing
+  , _fcRole = Nothing
+  , _fcRuntime = Nothing
+  , _fcTimeout = Nothing
+  }
 
 instance FromJSON FunctionConfiguration where
   parseJSON =
