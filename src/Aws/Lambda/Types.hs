@@ -174,7 +174,7 @@ eventSourceStatusToText = \case
 _TextEventSourceStatus ∷ Prism' T.Text EventSourceStatus
 _TextEventSourceStatus =
   prism eventSourceStatusToText $ \txt →
-    case (T.unpack txt) of
+    case (T.unpack $ T.toUpper txt) of
       "PENDING" → Right EventSourceStatusPending
       "OK" → Right EventSourceStatusOk
       'P':'R':'O':'B':'L':'E':'M':':':msg → Right ∘ EventSourceStatusProblem $ T.pack msg
