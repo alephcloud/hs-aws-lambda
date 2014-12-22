@@ -11,20 +11,21 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Aws.Lambda.Core,
+  exposed-modules:     Aws.Lambda,
+                       Aws.Lambda.Core,
                        Aws.Lambda.Types,
-                       Aws.Lambda.Constraints,
-                       Aws.Lambda.Commands.ListEventSources,
-                       Aws.Lambda.Commands.ListFunctions,
+                       Aws.Lambda.Commands.AddEventSource,
+                       Aws.Lambda.Commands.DeleteFunction,
+                       Aws.Lambda.Commands.GetEventSource,
                        Aws.Lambda.Commands.GetFunction,
                        Aws.Lambda.Commands.GetFunctionConfiguration,
-                       Aws.Lambda.Commands.UpdateFunctionConfiguration,
-                       Aws.Lambda.Commands.DeleteFunction,
-                       Aws.Lambda.Commands.UploadFunction,
-                       Aws.Lambda.Commands.AddEventSource,
-                       Aws.Lambda.Commands.GetEventSource,
+                       Aws.Lambda.Commands.InvokeAsync,
+                       Aws.Lambda.Commands.ListEventSources,
+                       Aws.Lambda.Commands.ListFunctions,
                        Aws.Lambda.Commands.RemoveEventSource,
-                       Aws.Lambda.Commands.InvokeAsync
+                       Aws.Lambda.Commands.UpdateFunctionConfiguration,
+                       Aws.Lambda.Commands.UploadFunction,
+                       Aws.Lambda.Internal.Constraints
   other-modules:       Aws.Lambda.Internal.Utils
   build-depends:       base >=4.7 && <4.8,
                        base-unicode-symbols,

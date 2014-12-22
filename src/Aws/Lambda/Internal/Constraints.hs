@@ -1,6 +1,6 @@
 -- Copyright (c) 2013-2014 PivotCloud, Inc.
 --
--- Aws.Lambda.Constraints
+-- Aws.Lambda.Internal.Constraints
 --
 -- Please feel free to contact us at licensing@pivotmail.com with any
 -- contributions, additions, or other feedback; we would love to hear from
@@ -26,7 +26,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
-module Aws.Lambda.Constraints
+module Aws.Lambda.Internal.Constraints
 ( Σ(..)
 , spread
 , type (⊗)

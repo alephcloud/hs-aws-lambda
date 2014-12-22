@@ -45,7 +45,7 @@ module Aws.Lambda.Commands.AddEventSource
 ) where
 
 import Aws.Lambda.Core
-import Aws.Lambda.Constraints
+import Aws.Lambda.Internal.Constraints
 import Aws.Lambda.Types
 
 import Control.Lens hiding ((.=))

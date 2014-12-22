@@ -69,7 +69,7 @@ module Aws.Lambda.Core
 ) where
 
 import Aws.General
-import Aws.Lambda.Constraints
+import Aws.Lambda.Internal.Constraints
 
 import Control.Applicative
 import Control.Lens
