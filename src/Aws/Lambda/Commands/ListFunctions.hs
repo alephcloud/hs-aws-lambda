@@ -23,7 +23,7 @@
 {-# LANGUAGE UnicodeSyntax #-}
 
 module Aws.Lambda.Commands.ListFunctions
-( -- * Requset
+( -- * Request
   ListFunctions(..)
 , listFunctions
   -- ** Lenses
