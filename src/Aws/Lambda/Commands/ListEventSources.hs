@@ -114,8 +114,8 @@ instance LambdaTransaction ListEventSources () ListEventSourcesResponse where
   buildQuery les =
     lambdaQuery GET ["event-source-mappings"]
       & lqParams
-        %~ (ix "EventSourceArn" .~ les ^. lesEventSourceArn ∘ to arnToText)
-         ∘ (ix "FunctionName" .~ les ^. lesFunctionName)
+        %~ (at "EventSourceArn" ?~ les ^. lesEventSourceArn ∘ to arnToText)
+         ∘ (at "FunctionName" ?~ les ^. lesFunctionName)
          ∘ (at "Marker" .~ les ^? lesMarker ∘ _Just ∘ ptText)
          ∘ (at "MaxItems" .~ les ^? lesMaxItems ∘ _Just ∘ to (T.pack ∘ show))
 
