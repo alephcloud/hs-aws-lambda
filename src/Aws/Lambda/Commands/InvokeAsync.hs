@@ -38,7 +38,6 @@ module Aws.Lambda.Commands.InvokeAsync
 import Aws.Lambda.Core
 
 import Control.Applicative
-import Control.Applicative.Unicode
 import Control.Lens
 import Data.Aeson
 import qualified Data.Text as T

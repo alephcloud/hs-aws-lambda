@@ -218,7 +218,7 @@ asJSON'
   ⇒ Response LB.ByteString
   → m (Response α)
 asJSON' resp =
-  catch (W.asJSON resp) $ \(e ∷ WT.JSONError) → do
+  catch (W.asJSON resp) $ \(_ ∷ WT.JSONError) → do
     W.asJSON resp { responseBody = "{}" }
 
 -- | A class for associating a request type with a response type.
