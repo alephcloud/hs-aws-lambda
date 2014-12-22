@@ -296,7 +296,7 @@ instance FromJSON EventSourceConfiguration where
         ⊛ o .:? "Parameters"
         ⊛ o .:? "Role"
         ⊛ o .:? "Status"
-        ⊛ o .:? "Uuid"
+        ⊛ o .:? "UUID"
 
 newtype ConfigurationId
   = ConfigurationId
