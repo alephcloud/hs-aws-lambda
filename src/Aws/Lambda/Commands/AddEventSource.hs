@@ -48,6 +48,7 @@ import Aws.Lambda.Types
 
 import Control.Lens hiding ((.=))
 import Data.Aeson
+import Data.Monoid
 import qualified Data.Text as T
 import Network.HTTP.Types
 import Prelude.Unicode
@@ -110,13 +111,13 @@ addEventSource es fn rl = AddEventSource
   }
 
 instance ToJSON AddEventSource where
-  toJSON AddEventSource{..} = object
-    [ "BatchSize" .= _aesBatchSize
-    , "EventSource" .= _aesEventSource
-    , "FunctionName" .= _aesFunctionName
-    , "Parameters" .= _aesParameters
-    , "Role" .= _aesRole
-    ]
+  toJSON AddEventSource{..} = Object $
+    mempty
+      & (at "BatchSize" .~ _aesBatchSize ^? _Just ∘ to toJSON)
+      & (at "EventSource" ?~ toJSON _aesEventSource)
+      & (at "FunctionName" ?~ toJSON _aesFunctionName)
+      & (at "Parameters" .~ _aesParameters ^? _Just ∘ to toJSON)
+      & (at "Role" ?~ toJSON _aesRole)
 
 instance LambdaPayload AddEventSource where
   packagePayload = Pack ∘ toJSON
