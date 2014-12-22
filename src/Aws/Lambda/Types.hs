@@ -140,7 +140,7 @@ instance ToJSON PaginationToken where
 newtype LambdaUuid
   = LambdaUuid
   { _luText ∷ T.Text
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, ToJSON)
 
 luText ∷ Getter LambdaUuid T.Text
 luText = to _luText
@@ -149,9 +149,6 @@ instance FromJSON LambdaUuid where
   parseJSON =
     withText "LambdaUuid" $
       pure ∘ LambdaUuid
-
-instance ToJSON LambdaUuid where
-  toJSON = String ∘ _luText
 
 data EventSourceStatus
   = EventSourceStatusPending
@@ -301,7 +298,7 @@ instance FromJSON EventSourceConfiguration where
 newtype ConfigurationId
   = ConfigurationId
   { _cidText ∷ T.Text
-  } deriving (Eq, Show)
+  } deriving (Eq, Show, ToJSON)
 
 cidText ∷ Getter ConfigurationId T.Text
 cidText = to _cidText
@@ -310,9 +307,6 @@ instance FromJSON ConfigurationId where
   parseJSON =
     withText "ConfigurationId" $
       pure ∘ ConfigurationId
-
-instance ToJSON ConfigurationId where
-  toJSON = String ∘ _cidText
 
 data FunctionMode
   = FunctionModeEvent
