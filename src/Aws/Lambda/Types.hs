@@ -255,7 +255,7 @@ instance ToJSON EventSourceParameters where
 data EventSourceConfiguration
   = EventSourceConfiguration
   { _escBatchSize ∷ !(Maybe Int)
-  , _escEventSource ∷ !(Maybe T.Text)
+  , _escEventSource ∷ !(Maybe Arn)
   , _escFunctionName ∷ !(Maybe T.Text)
   , _escIsActive ∷ !(Maybe Bool)
   , _escLastModified ∷ !(Maybe LambdaDateTime)

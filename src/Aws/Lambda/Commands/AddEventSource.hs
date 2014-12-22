@@ -99,7 +99,7 @@ data AddEventSource
 addEventSource
   ∷ Arn -- ^ '_aesEventSource'
   → T.Text -- ^ '_aesFunctionName'
-  → T.Text -- ^ '_aesRole'
+  → Arn -- ^ '_aesRole'
   → AddEventSource
 addEventSource es fn rl = AddEventSource
   { _aesBatchSize = Nothing
