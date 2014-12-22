@@ -103,7 +103,9 @@ import Aws.Lambda.Internal.Utils
 import Control.Applicative
 import Control.Applicative.Unicode
 import Control.Lens hiding ((.=))
+import Control.Monad.Unicode
 import Data.Aeson
+import Data.Aeson.Types
 import Data.Aeson.Lens
 import Data.Monoid.Unicode
 import qualified Data.Text as T
@@ -267,6 +269,20 @@ data EventSourceConfiguration
 
 makeLenses ''EventSourceConfiguration
 
+-- | A kludge to get around incorrectly formatted JSON in AWS Lambda responses.
+--
+boolParserKludge
+  ∷ Object
+  → T.Text
+  → Parser Bool
+boolParserKludge o k = o .: k <|> (fromString =≪ o .: k)
+  where
+    fromString ∷ T.Text → Parser Bool
+    fromString = \case
+      "true" → return True
+      "false" → return False
+      _ → empty
+
 instance FromJSON EventSourceConfiguration where
   parseJSON =
     withObject "EventSourceConfiguration" $ \o →
@@ -274,7 +290,7 @@ instance FromJSON EventSourceConfiguration where
         ⊛ o .:? "BatchSize"
         ⊛ o .:? "EventSource"
         ⊛ o .:? "FunctionName"
-        ⊛ o .:? "IsActive"
+        ⊛ optional (boolParserKludge o "IsActive")
         ⊛ o .:? "LastModified"
         ⊛ o .:? "Parameters"
         ⊛ o .:? "Role"
