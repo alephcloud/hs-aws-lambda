@@ -71,7 +71,7 @@ data GetFunctionResponse
   = GetFunctionResponse
   { _gfrCode ∷ !FunctionCodeLocation
   , _gfrConfiguration ∷ !FunctionConfiguration
-  }
+  } deriving (Eq, Show)
 
 makeLenses ''GetFunctionResponse
 
