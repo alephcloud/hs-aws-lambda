@@ -16,10 +16,6 @@
 -- License for the specific language governing permissions and limitations
 -- under the License.
 
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE UnicodeSyntax #-}
 

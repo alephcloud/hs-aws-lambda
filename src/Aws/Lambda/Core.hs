@@ -16,20 +16,13 @@
 -- License for the specific language governing permissions and limitations
 -- under the License.
 
-{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UnicodeSyntax #-}
 
@@ -209,7 +202,9 @@ pattern ResourceNotFoundException msg
 pattern ServiceException msg
   ← StatusCodeException (Status 500 msg) _ _
 
-
+-- | A kludge to get around the fact that AWS Lambda sends back empty responses
+-- to some requests.
+--
 asJSON'
   ∷ ( MonadThrow m
     , MonadCatch m

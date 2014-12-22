@@ -16,12 +16,10 @@
 -- License for the specific language governing permissions and limitations
 -- under the License.
 
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE UnicodeSyntax #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
 
 module Aws.Lambda.Commands.RemoveEventSource
 ( -- * Request
