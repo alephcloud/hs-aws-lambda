@@ -107,6 +107,7 @@ import Control.Monad.Unicode
 import Data.Aeson
 import Data.Aeson.Types
 import Data.Aeson.Lens
+import Data.Monoid
 import Data.Monoid.Unicode
 import qualified Data.Text as T
 import Data.Time
@@ -250,9 +251,9 @@ instance FromJSON EventSourceParameters where
         ⊛ o .:? "InitialPositionInStream"
 
 instance ToJSON EventSourceParameters where
-  toJSON EventSourceParameters{..} = object
-    [ "InitialPositionInStream" .= _espInitialPositionInStream
-    ]
+  toJSON EventSourceParameters{..} = Object $
+    mempty
+      & at "InitialPositionInStream" .~ _espInitialPositionInStream ^? _Just ∘ to toJSON
 
 data EventSourceConfiguration
   = EventSourceConfiguration
