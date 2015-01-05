@@ -1,6 +1,7 @@
 name:                aws-lambda
 version:             0.1.0.0
 synopsis:            Haskell bindings for AWS Lambda
+homepage:            https://github.com/alephcloud/hs-aws-lambda
 license:             Apache-2.0
 license-file:        LICENSE
 author:              Jon Sterling
@@ -9,6 +10,10 @@ copyright:           Copyright (c) 2013-2014 PivotCloud, Inc.
 category:            Network, Cloud
 build-type:          Simple
 cabal-version:       >=1.10
+
+source-repository head
+  type:     git
+  location: https://github.com/alephcloud/hs-aws-lambda.git
 
 library
   exposed-modules:     Aws.Lambda,
