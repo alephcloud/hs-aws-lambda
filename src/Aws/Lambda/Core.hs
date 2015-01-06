@@ -66,6 +66,7 @@ import Aws.Lambda.Internal.Constraints
 
 import Control.Applicative
 import Control.Lens
+import Control.Lens.Action
 import Control.Monad.Catch
 import Control.Monad.Trans
 import Control.Monad.Unicode
