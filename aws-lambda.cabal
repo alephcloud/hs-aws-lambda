@@ -1,5 +1,5 @@
 name:                aws-lambda
-version:             0.1.0.0
+version:             0.1.0.1
 synopsis:            Haskell bindings for AWS Lambda
 homepage:            https://github.com/alephcloud/hs-aws-lambda
 license:             Apache-2.0
