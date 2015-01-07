@@ -14,3 +14,5 @@ more modern and less verbose core to the Haskell AWS bindings. I am confident
 that anything which this library does not currently do (reusing connections,
 etc.) can be added easily and modularly without significantly increasing the
 complexity and burden of the project.
+
+![Travis CI Status](https://travis-ci.org/alephcloud/hs-aws-lambda.svg)
